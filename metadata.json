@@ -1,0 +1,6 @@
+{
+  "name": "IronPath",
+  "description": "A premium performance companion for student-athletes and wrestlers featuring interactive training schedules, safety-first teen AI coaching, biometric trendlines, and tactical condition-score tracking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

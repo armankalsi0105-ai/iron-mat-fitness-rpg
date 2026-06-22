@@ -1,0 +1,227 @@
+@import "tailwindcss";
+
+/* ─── IronPath Design System ─── */
+:root {
+  /* 8-point spacing scale */
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 40px;
+  --space-6: 48px;
+
+  /* Brand palette */
+  --color-bg: #060609;
+  --color-surface: #0a0a0f;
+  --color-surface-elevated: #111118;
+  --color-border: rgba(255, 255, 255, 0.06);
+  --color-border-strong: rgba(255, 255, 255, 0.1);
+  --color-text: #fafafa;
+  --color-text-muted: #71717a;
+  --color-text-subtle: #52525b;
+  --color-accent: #f59e0b;
+  --color-accent-bright: #fbbf24;
+  --color-accent-glow: rgba(245, 158, 11, 0.25);
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #f43f5e;
+  --color-info: #38bdf8;
+  --color-recovery: #34d399;
+  --color-training: #fbbf24;
+  --color-strength: #a78bfa;
+
+  /* Typography scale */
+  --text-hero: clamp(2rem, 5vw, 2.5rem);
+  --text-section: clamp(1.25rem, 3vw, 1.5rem);
+  --text-card-title: 1.0625rem;
+  --text-body: 0.9375rem;
+  --text-caption: 0.75rem;
+
+  /* Radius & depth */
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 28px;
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+  --shadow-elevated: 0 8px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  --shadow-glow: 0 0 32px var(--color-accent-glow);
+
+  /* Glass */
+  --glass-bg: rgba(17, 17, 24, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-blur: 16px;
+
+  /* Motion */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 280ms;
+  --duration-slow: 500ms;
+}
+
+/* Base refinements */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Premium card glass variant */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-card);
+}
+
+/* Gradient mesh backgrounds */
+.gradient-mesh-amber {
+  background:
+    radial-gradient(ellipse 80% 60% at 100% 0%, rgba(245, 158, 11, 0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 0% 100%, rgba(249, 115, 22, 0.08) 0%, transparent 50%);
+}
+
+.gradient-mesh-workout {
+  background:
+    linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(17, 17, 24, 0.95) 45%, rgba(10, 10, 15, 1) 100%);
+}
+
+/* Touch targets */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Animations */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.2); }
+  50% { box-shadow: 0 0 32px rgba(245, 158, 11, 0.35); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes ring-fill {
+  from { stroke-dashoffset: var(--ring-circumference); }
+  to { stroke-dashoffset: var(--ring-offset); }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.06) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2.5s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2.5s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Stagger children entrance */
+.stagger-children > * {
+  animation: fade-up 0.5s var(--ease-out-expo) both;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 60ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 120ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 180ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 240ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 300ms; }
+.stagger-children > *:nth-child(7) { animation-delay: 360ms; }
+.stagger-children > *:nth-child(8) { animation-delay: 420ms; }
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Quick start button press feedback */
+.btn-premium {
+  transition: transform var(--duration-fast) var(--ease-out-expo),
+              box-shadow var(--duration-normal) var(--ease-out-expo),
+              background var(--duration-fast);
+}
+.btn-premium:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* Typography utilities */
+.text-hero { font-size: var(--text-hero); line-height: 1.1; }
+.text-section { font-size: var(--text-section); line-height: 1.25; }
+.text-card-title { font-size: var(--text-card-title); line-height: 1.35; }
+.text-body { font-size: var(--text-body); line-height: 1.5; }
+.text-caption { font-size: var(--text-caption); line-height: 1.4; }
+
+/* Focus rings (WCAG) */
+:focus-visible {
+  outline: 2px solid var(--color-accent-bright);
+  outline-offset: 2px;
+}
+
+/* Tab content fade */
+.tab-content-enter {
+  animation: fade-up 0.35s var(--ease-out-expo) both;
+}
+
+/* Celebration confetti burst */
+@keyframes confetti-fall {
+  0% { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(60px) rotate(360deg); opacity: 0; }
+}
+
+.animate-confetti {
+  animation: confetti-fall 1.2s var(--ease-out-expo) forwards;
+}
+
+/* Score ring glow states */
+.score-glow-high { filter: drop-shadow(0 0 12px rgba(52, 211, 153, 0.35)); }
+.score-glow-mid { filter: drop-shadow(0 0 12px rgba(251, 191, 36, 0.35)); }
+.score-glow-low { filter: drop-shadow(0 0 12px rgba(251, 113, 133, 0.35)); }
+
+/* Sticky workout bar safe area */
+.safe-bottom-pad {
+  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .stagger-children > * {
+    animation: none !important;
+  }
+}
