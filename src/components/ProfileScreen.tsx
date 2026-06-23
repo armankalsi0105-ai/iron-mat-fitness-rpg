@@ -3,7 +3,7 @@ Author: AI Coding Assistant
 OS support: Linux, macOS, Windows
 Description: Biometrics, goals, units, and profile preferences editor screen for IronPath
 */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   User, Sparkles, Check, Moon, Settings, Database
 } from 'lucide-react';
@@ -30,6 +30,15 @@ export default function ProfileScreen({
   const [sport, setSport] = useState(activeProfile.sport || "Athlete");
   const [goals, setGoals] = useState(activeProfile.goals || "");
   const [lbsUnit, setLbsUnit] = useState(true);
+
+  useEffect(() => {
+    setName(activeProfile.name);
+    setAge(activeProfile.age || 0);
+    setHeight(activeProfile.height || "");
+    setWeight(activeProfile.weight || 0);
+    setSport(activeProfile.sport || "Athlete");
+    setGoals(activeProfile.goals || "");
+  }, [activeProfile.id, activeProfile.name, activeProfile.age, activeProfile.height, activeProfile.weight, activeProfile.sport, activeProfile.goals]);
 
   const handleUpdateAthleteProfile = () => {
     if (!name.trim()) {

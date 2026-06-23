@@ -1,7 +1,7 @@
 export interface AthleteProfile {
   id: string;
   name: string;
-  completedSets: Record<string, boolean>; // key: "day-exerciseIdx-setIdx"
+  completedSets: Record<string, boolean>; // key: "YYYY-MM-DD-day-exerciseIdx-setIdx"
   savedWeights: Record<string, string>; // key: exerciseName -> weight
   avatarUrl: string;
 

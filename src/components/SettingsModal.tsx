@@ -86,7 +86,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   
                   <div className="flex items-center gap-2 text-xs text-zinc-500 bg-ntc p-3 rounded-xl">
                     <Shield size={12} className="text-zinc-600 shrink-0" />
-                    <p>Keys are stored locally in your browser.</p>
+                    <p>Keys are stored locally in your browser. On LAN dev (HTTP), paste your key here — it is sent via the X-Gemini-Key header.</p>
                   </div>
                 </div>
 

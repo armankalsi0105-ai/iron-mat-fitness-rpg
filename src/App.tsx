@@ -24,7 +24,7 @@ import CalendarScreen from './components/CalendarScreen';
 import ProfileScreen from './components/ProfileScreen';
 import OnboardingScreen from './components/OnboardingScreen';
 import AICoach from './components/AICoach';
-import { getStorageItem, setStorageItem } from './utils/storage';
+import { setStorageItem } from './utils/storage';
 import { loadVaultFromStorage, saveVaultToStorage } from './utils/vaultStorage';
 
 const DEFAULT_RITUALS = [
