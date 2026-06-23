@@ -76,7 +76,7 @@ export default function AICoach({ activeProfile }: AICoachProps) {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-180px)] max-h-[800px] border border-zinc-900 bg-zinc-950 rounded-3xl overflow-hidden shadow-xl mt-4 relative">
+    <div className="flex flex-col h-[calc(100dvh-180px)] max-h-[800px] border border-zinc-900 bg-zinc-950 rounded-3xl overflow-hidden shadow-xl mt-4 relative">
       <div className="p-4 border-b border-zinc-900 bg-black/40 flex justify-between items-center z-10 shrink-0">
         <div className="flex items-center gap-3">
           <div className="bg-amber-500/10 p-2 rounded-xl text-amber-500">

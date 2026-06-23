@@ -25,4 +25,9 @@ You can also save a key per-browser via **Settings** (sliders icon in the header
 - **Gemini API:** Go to [Google AI Studio](https://aistudio.google.com/app/apikey) and generate a new key.
 
 **How to test them:**
-Restart the development server if it's currently running. Open the app and navigate to the **Coach** tab. Send a message to the AI. If your API key is correctly configured and valid, the coach will respond. If it is invalid, you will seamlessly receive a fallback warning in the UI letting you know it's missing or misconfigured. 
+Restart the development server if it's currently running. Open the app and navigate to the **Coach** tab. Send a message to the AI. If your API key is correctly configured and valid, the coach will respond. If it is invalid, you will seamlessly receive a fallback warning in the UI letting you know it's missing or misconfigured.
+
+## Safari (macOS & iPhone)
+
+- **macOS Safari:** Open [http://localhost:3000](http://localhost:3000) after `npm run dev`.
+- **iPhone Safari:** Use the same Wi‑Fi as your Mac, find your Mac's LAN IP (`ipconfig getifaddr en0`), then open `http://<that-ip>:3000` in Safari. The dev server binds to all interfaces (`0.0.0.0`).

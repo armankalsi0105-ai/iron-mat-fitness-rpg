@@ -48,7 +48,7 @@ export default function NumpadBottomSheet({
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className="fixed bottom-0 left-0 right-0 z-50 bg-zinc-950 border-t border-zinc-900 rounded-t-3xl pb-safe flex flex-col pointer-events-auto"
-            style={{ maxHeight: '80vh' }}
+            style={{ maxHeight: '80dvh' }}
           >
             <div className="p-4 flex flex-col h-full pointer-events-auto">
               <div className="flex justify-between items-center mb-4">

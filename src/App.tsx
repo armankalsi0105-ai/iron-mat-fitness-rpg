@@ -24,6 +24,7 @@ import CalendarScreen from './components/CalendarScreen';
 import ProfileScreen from './components/ProfileScreen';
 import OnboardingScreen from './components/OnboardingScreen';
 import AICoach from './components/AICoach';
+import { getStorageItem, setStorageItem } from './utils/storage';
 
 const DEFAULT_RITUALS = [
   {
@@ -87,7 +88,7 @@ export default function App() {
     profiles: AthleteProfile[];
     currentProfileId: string;
   }>(() => {
-    const saved = typeof window !== 'undefined' ? localStorage.getItem('iron_mat_vault_v3') : null;
+    const saved = typeof window !== 'undefined' ? getStorageItem('iron_mat_vault_v3') : null;
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -128,7 +129,7 @@ export default function App() {
 
   // Keep local storage in perfect synchronization
   useEffect(() => {
-    localStorage.setItem('iron_mat_vault_v3', JSON.stringify(vault));
+    setStorageItem('iron_mat_vault_v3', JSON.stringify(vault));
   }, [vault]);
 
   // Current active profile helper
@@ -439,7 +440,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#060609] text-zinc-100 font-sans tracking-tight pb-28 relative overflow-x-hidden selection:bg-amber-500 selection:text-black">
+    <div className="min-h-dvh bg-[#060609] text-zinc-100 font-sans tracking-tight pb-28 relative overflow-x-hidden selection:bg-amber-500 selection:text-black">
       {activeProfile.name === "NEW ATHLETE" && (
         <OnboardingScreen updateActiveProfile={updateActiveProfile} />
       )}
@@ -723,7 +724,7 @@ export default function App() {
       )}
 
       {/* BOTTOM FLOATING NAV BAR TO PREVENT OVERSHOOT (LARGE TARGETS >= 44x44) */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-zinc-950/90 border-t border-zinc-900/60 backdrop-blur-md">
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-zinc-950/90 border-t border-zinc-900/60 backdrop-blur-md pb-safe">
         <div className="max-w-md mx-auto h-[68px] px-3 flex justify-between items-center">
           {[
             { id: 'home', label: 'Home', icon: Layout },

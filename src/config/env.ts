@@ -3,6 +3,8 @@
  * Keys are stored in localStorage or sent via the backend proxy — never bundled into the client.
  */
 
+import { getStorageItem, removeStorageItem, setStorageItem } from '../utils/storage';
+
 export const GEMINI_API_KEY_STORAGE = 'gemini_api_key';
 const PLACEHOLDER_KEY = 'your_gemini_api_key_here';
 
@@ -27,7 +29,7 @@ export function parseApiKeyInput(raw: string): string {
 /** Read the user's locally stored Gemini API key, if any. */
 export function getGeminiApiKey(): string {
   if (typeof window === 'undefined') return '';
-  const stored = localStorage.getItem(GEMINI_API_KEY_STORAGE);
+  const stored = getStorageItem(GEMINI_API_KEY_STORAGE);
   return stored ? sanitizeApiKey(stored) : '';
 }
 
@@ -36,9 +38,9 @@ export function setGeminiApiKey(key: string | null): void {
   if (typeof window === 'undefined') return;
   const sanitized = key ? parseApiKeyInput(key) : '';
   if (sanitized && sanitized !== PLACEHOLDER_KEY) {
-    localStorage.setItem(GEMINI_API_KEY_STORAGE, sanitized);
+    setStorageItem(GEMINI_API_KEY_STORAGE, sanitized);
   } else {
-    localStorage.removeItem(GEMINI_API_KEY_STORAGE);
+    removeStorageItem(GEMINI_API_KEY_STORAGE);
   }
 }
 

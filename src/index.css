@@ -23,4 +23,18 @@ Description: Premium athletic cockpit styling with ultra-precision performance o
   --color-zinc-650: #45454f;
   --color-zinc-555: #5c5c66;
 }
+
+/* iOS Safari: safe-area insets for notched devices and home indicator */
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* iOS Safari: prevent auto-zoom when focusing inputs with font-size < 16px */
+@supports (-webkit-touch-callout: none) {
+  input,
+  textarea,
+  select {
+    font-size: max(16px, 1em);
+  }
+}
 /* --- End of index.css --- */
