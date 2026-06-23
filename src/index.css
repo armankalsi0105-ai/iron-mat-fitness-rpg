@@ -1,27 +1,40 @@
 /*
 Author: AI Coding Assistant
 OS support: Linux, macOS, Windows
-Description: Premium athletic cockpit styling with ultra-precision performance overrides
+Description: Nike Training Club–inspired athletic design system
 */
 @import "tailwindcss";
 
 @theme {
-  --color-amber-500: #f59e0b;
-  --color-amber-400: #fbbf24;
-  --color-amber-600: #d97706;
-  --color-orange-500: #f97316;
-  --color-orange-600: #ea580c;
-  --color-orange-650: #e85d0e;
-  --color-emerald-500: #10b981;
-  --color-emerald-400: #34d399;
-  --color-zinc-950: #030303;
-  --color-zinc-900: #0a0a0f;
-  --color-zinc-850: #12121c;
-  --color-zinc-805: #1a1a24;
-  --color-zinc-800: #1b1b22;
-  --color-zinc-705: #2e2e38;
-  --color-zinc-650: #45454f;
-  --color-zinc-555: #5c5c66;
+  /* Nike Volt accent */
+  --color-volt-400: #d9ff33;
+  --color-volt-500: #cdf500;
+  --color-volt-600: #b3d900;
+
+  /* Charcoal surfaces */
+  --color-ntc: #111111;
+  --color-ntc-elevated: #1a1a1a;
+  --color-ntc-border: #2a2a2a;
+
+  /* Neutral scale (charcoal-tuned) */
+  --color-zinc-950: #111111;
+  --color-zinc-900: #1a1a1a;
+  --color-zinc-850: #222222;
+  --color-zinc-805: #2a2a2a;
+  --color-zinc-800: #333333;
+  --color-zinc-705: #4a4a4a;
+  --color-zinc-650: #6b6b6b;
+  --color-zinc-555: #8a8a8a;
+
+  /* Legacy aliases mapped to volt for gradual migration */
+  --color-amber-500: #cdf500;
+  --color-amber-400: #d9ff33;
+  --color-amber-600: #b3d900;
+  --color-orange-500: #b3d900;
+  --color-orange-600: #9fc200;
+  --color-orange-650: #9fc200;
+  --color-emerald-500: #cdf500;
+  --color-emerald-400: #d9ff33;
 }
 
 /* iOS Safari: safe-area insets for notched devices and home indicator */

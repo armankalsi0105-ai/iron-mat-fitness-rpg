@@ -440,27 +440,18 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-dvh bg-[#060609] text-zinc-100 font-sans tracking-tight pb-28 relative overflow-x-hidden selection:bg-amber-500 selection:text-black">
+    <div className="min-h-dvh bg-ntc text-zinc-100 font-sans tracking-tight pb-28 relative overflow-x-hidden selection:bg-volt-500 selection:text-black">
       {activeProfile.name === "NEW ATHLETE" && (
         <OnboardingScreen updateActiveProfile={updateActiveProfile} />
       )}
-      {/* Decorative dark grid background */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f293708_1px,transparent_1px),linear-gradient(to_bottom,#1f293708_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
-      
-      {/* Dynamic ambient lights */}
-      <div className="fixed top-[-100px] left-[-100px] w-[350px] h-[350px] bg-amber-500/5 blur-[120px] rounded-full pointer-events-none" />
-      <div className="fixed bottom-[-100px] right-[-100px] w-[350px] h-[350px] bg-amber-600/5 blur-[120px] rounded-full pointer-events-none" />
 
       {/* TOP HEADER */}
-      <div className="bg-zinc-950/80 border-b border-zinc-900 sticky top-0 z-40 backdrop-blur-md">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-500">
-              <Dumbbell size={18} className="rotate-45" />
-            </div>
+      <div className="bg-ntc border-b border-ntc-border sticky top-0 z-40">
+        <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-3">
             <div>
-              <span className="text-[12px] font-black tracking-widest text-amber-500 uppercase font-mono block leading-none">IRONPATH</span>
-              <span className="text-[9px] font-bold tracking-tight text-zinc-400 uppercase">Student-Athlete Hub</span>
+              <span className="text-lg font-black tracking-tight text-white block leading-none">IronPath</span>
+              <span className="text-[11px] font-medium text-zinc-500">Training</span>
             </div>
           </div>
           
@@ -468,19 +459,18 @@ export default function App() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setSettingsModalOpen(true)}
-              className="p-1.5 rounded-lg bg-zinc-900 border border-zinc-850 hover:border-amber-500/50 hover:text-amber-500 transition-all text-zinc-400 select-none cursor-pointer"
-              title="System Setup"
+              className="p-2 rounded-full hover:bg-zinc-900 transition-colors text-zinc-400 hover:text-white select-none cursor-pointer"
+              title="Settings"
             >
-              <Sliders size={16} />
+              <Sliders size={18} />
             </button>
             <button
               onClick={() => setShowManageProfiles(!showManageProfiles)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-850 hover:border-zinc-700 transition-all text-xs font-bold text-zinc-300 select-none cursor-pointer"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-ntc-elevated border border-ntc-border hover:border-zinc-700 transition-all text-xs font-semibold text-zinc-300 select-none cursor-pointer"
             >
-              <Users size={14} className="text-amber-500" />
-              <span className="max-w-[110px] truncate font-mono">{activeProfile.name}</span>
+              <Users size={14} className="text-zinc-400" />
+              <span className="max-w-[110px] truncate">{activeProfile.name}</span>
             </button>
-            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" title="Local storage active" />
           </div>
         </div>
       </div>
@@ -494,11 +484,11 @@ export default function App() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="mb-6 bg-zinc-950 border border-zinc-900 rounded-2xl overflow-hidden p-5"
+              className="mb-6 bg-ntc-elevated border border-ntc-border rounded-2xl overflow-hidden p-5"
             >
-              <div className="flex justify-between items-center mb-4 pb-2 border-b border-zinc-900">
-                <h4 className="text-xs font-black tracking-wider text-amber-500 uppercase font-mono flex items-center gap-1.5">
-                  <ShieldAlert size={12} /> Local Combatant Ledger
+              <div className="flex justify-between items-center mb-4 pb-2 border-b border-ntc-border">
+                <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
+                  <ShieldAlert size={14} className="text-zinc-400" /> Profiles
                 </h4>
                 <button
                   onClick={() => setShowManageProfiles(false)}
@@ -515,8 +505,8 @@ export default function App() {
                     key={p.id}
                     className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
                       p.id === activeProfile.id 
-                        ? 'bg-zinc-900/80 border-amber-500/50' 
-                        : 'bg-black/30 border-zinc-900 hover:border-zinc-800'
+                        ? 'bg-zinc-900 border-volt-500/40' 
+                        : 'bg-ntc border-ntc-border hover:border-zinc-700'
                     }`}
                   >
                     <div 
@@ -533,7 +523,7 @@ export default function App() {
                         referrerPolicy="no-referrer"
                       />
                       <div>
-                        <p className="text-xs font-black text-white font-mono">{p.name}</p>
+                        <p className="text-sm font-bold text-white">{p.name}</p>
                         <p className="text-[10px] text-zinc-500 font-medium">Streak {p.streak} • {p.sport || "Wrestling"}</p>
                       </div>
                     </div>
@@ -552,7 +542,7 @@ export default function App() {
 
               {/* Create new profile form */}
               <div className="border-t border-zinc-900 pt-4">
-                <span className="text-[10px] font-bold text-zinc-500 font-mono block uppercase mb-2">Register New Athlete</span>
+                <span className="text-xs font-medium text-zinc-500 block mb-2">Add profile</span>
                 <form 
                   onSubmit={(e) => {
                     e.preventDefault();
@@ -567,13 +557,13 @@ export default function App() {
                     value={newProfileName}
                     onChange={(e) => setNewProfileName(e.target.value)}
                     placeholder="E.G. CHAMPION-ATHLETE"
-                    className="flex-1 bg-black/40 border border-zinc-900 rounded-xl px-3 py-2 text-xs font-mono text-white placeholder-zinc-700 uppercase focus:outline-none focus:border-amber-500/40"
+                    className="flex-1 bg-ntc border border-ntc-border rounded-xl px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-volt-500/50"
                   />
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-amber-500 text-black text-xs font-black rounded-xl hover:bg-amber-400 font-mono uppercase tracking-tight"
+                    className="px-4 py-2 bg-white text-black text-sm font-bold rounded-xl hover:bg-zinc-100"
                   >
-                    Register
+                    Add
                   </button>
                 </form>
               </div>
@@ -670,7 +660,7 @@ export default function App() {
 
       {/* FLOATING REST TIMER OVERLAY / METRICS MINI HUD */}
       {timerRunning && (
-        <div className="fixed bottom-24 right-4 z-50 bg-zinc-950/95 border border-amber-500/40 rounded-full px-4 py-2.5 flex items-center gap-3 shadow-[0_12px_40px_rgba(0,0,0,0.8)] backdrop-blur-md">
+        <div className="fixed bottom-24 right-4 z-50 bg-ntc-elevated border border-ntc-border rounded-full px-4 py-2.5 flex items-center gap-3 shadow-lg">
           <div className="relative h-9 w-9 flex items-center justify-center">
             {/* SVG Progress Circle behind */}
             <svg className="absolute inset-0 transform -rotate-90" viewBox="0 0 36 36">
@@ -682,7 +672,7 @@ export default function App() {
                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
               />
               <path
-                className="text-amber-500 transition-all duration-300"
+                className="text-volt-500 transition-all duration-300"
                 strokeWidth="2.5"
                 strokeDasharray={`${(timerRemaining / timerMax) * 100}, 100`}
                 strokeLinecap="round"
@@ -691,7 +681,7 @@ export default function App() {
                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
               />
             </svg>
-            <span className="text-[10px] font-mono font-black text-amber-500 z-10">{timerRemaining}s</span>
+            <span className="text-[10px] font-bold text-volt-500 z-10">{timerRemaining}s</span>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -717,15 +707,15 @@ export default function App() {
       {activeTab !== 'workout' && !timerRunning && (
         <button
           onClick={() => setActiveTab('workout')}
-          className="fixed bottom-24 right-5 z-40 bg-amber-500 hover:bg-amber-400 text-black font-black uppercase text-sm rounded-full px-5 py-3.5 flex items-center gap-2 transition-transform shadow-[0_0_20px_rgba(245,158,11,0.4)] hover:scale-105 cursor-pointer font-mono tracking-widest"
+          className="fixed bottom-24 right-5 z-40 bg-white hover:bg-zinc-100 text-black font-bold text-sm rounded-full px-6 py-3.5 flex items-center gap-2 transition-transform shadow-lg hover:scale-105 cursor-pointer"
         >
-          <Zap size={16} className="fill-current" /> Start
+          <Play size={16} className="fill-current" /> Start
         </button>
       )}
 
       {/* BOTTOM FLOATING NAV BAR TO PREVENT OVERSHOOT (LARGE TARGETS >= 44x44) */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-zinc-950/90 border-t border-zinc-900/60 backdrop-blur-md pb-safe">
-        <div className="max-w-md mx-auto h-[68px] px-3 flex justify-between items-center">
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-ntc border-t border-ntc-border pb-safe">
+        <div className="max-w-md mx-auto h-[68px] px-2 flex justify-between items-center">
           {[
             { id: 'home', label: 'Home', icon: Layout },
             { id: 'workout', label: 'Train', icon: Dumbbell },
@@ -740,12 +730,12 @@ export default function App() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex flex-col items-center justify-center gap-1.5 flex-1 h-full min-h-[44px] min-w-[44px] text-center select-none cursor-pointer transition-all ${
-                  isSel ? 'text-amber-500 scale-105' : 'text-zinc-500 hover:text-zinc-300'
+                className={`flex flex-col items-center justify-center gap-1 flex-1 h-full min-h-[44px] min-w-[44px] text-center select-none cursor-pointer transition-colors ${
+                  isSel ? 'text-volt-500' : 'text-zinc-500 hover:text-zinc-300'
                 }`}
               >
-                <Icon size={18} className={isSel ? "animate-pulse" : ""} />
-                <span className="text-[9px] font-black tracking-wider uppercase font-mono leading-none">{tab.label}</span>
+                <Icon size={20} strokeWidth={isSel ? 2.5 : 2} />
+                <span className="text-[10px] font-medium leading-none">{tab.label}</span>
               </button>
             );
           })}
@@ -785,9 +775,9 @@ export default function App() {
             initial={{ opacity: 0, y: -40, x: "-50%" }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -40 }}
-            className="fixed top-11 left-1/2 -translate-x-1/2 bg-amber-500 text-black px-6 py-2.5 rounded-full font-black text-xs tracking-tight shadow-[0_12px_36px_rgba(0,0,0,0.6)] border border-amber-400 z-50 flex items-center gap-2"
+            className="fixed top-11 left-1/2 -translate-x-1/2 bg-ntc-elevated text-white px-6 py-2.5 rounded-full font-medium text-sm shadow-lg border border-ntc-border z-50 flex items-center gap-2"
           >
-            <Zap size={12} className="fill-current" />
+            <Zap size={14} className="text-volt-500 fill-volt-500" />
             <span>{toast.message}</span>
           </motion.div>
         )}
