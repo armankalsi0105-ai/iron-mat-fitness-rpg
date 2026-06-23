@@ -1,0 +1,26 @@
+/*
+Author: AI Coding Assistant
+OS support: Linux, macOS, Windows
+Description: Premium athletic cockpit styling with ultra-precision performance overrides
+*/
+@import "tailwindcss";
+
+@theme {
+  --color-amber-500: #f59e0b;
+  --color-amber-400: #fbbf24;
+  --color-amber-600: #d97706;
+  --color-orange-500: #f97316;
+  --color-orange-600: #ea580c;
+  --color-orange-650: #e85d0e;
+  --color-emerald-500: #10b981;
+  --color-emerald-400: #34d399;
+  --color-zinc-950: #030303;
+  --color-zinc-900: #0a0a0f;
+  --color-zinc-850: #12121c;
+  --color-zinc-805: #1a1a24;
+  --color-zinc-800: #1b1b22;
+  --color-zinc-705: #2e2e38;
+  --color-zinc-650: #45454f;
+  --color-zinc-555: #5c5c66;
+}
+/* --- End of index.css --- */
