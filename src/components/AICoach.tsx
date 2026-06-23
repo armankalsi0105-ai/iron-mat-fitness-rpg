@@ -15,7 +15,7 @@ export default function AICoach({ activeProfile }: AICoachProps) {
   const [history, setHistory] = useState<{ role: 'user' | 'assistant'; text: string }[]>([
     {
       role: 'assistant',
-      text: "Yo champion! I'm your IronPath AI Coach. Ask me how to blast doublelegs, pack explosive hip drive, optimize grip endurance safely, or lay down recovery meals. Remember: no ego-lifting in my room, protect your neck and joints!"
+      text: "Hi! I'm your IronPath coach. Ask me about training form, recovery, nutrition, or how to structure your workouts. I'm here to help you train smarter."
     }
   ]);
   
@@ -56,12 +56,12 @@ export default function AICoach({ activeProfile }: AICoachProps) {
              isAuthCode: true
            });
         } else {
-          setHistory(prev => [...prev, { role: 'assistant', text: data.error || "Coaching connection timed out. Let's ask again, soldier!" }]);
+          setHistory(prev => [...prev, { role: 'assistant', text: data.error || "Connection timed out. Please try again." }]);
         }
       }
     } catch (err) {
       console.error(err);
-      setHistory(prev => [...prev, { role: 'assistant', text: "Connection error. Give me that query once more!" }]);
+      setHistory(prev => [...prev, { role: 'assistant', text: "Connection error. Please try again." }]);
     } finally {
       setLoading(false);
     }
@@ -70,54 +70,54 @@ export default function AICoach({ activeProfile }: AICoachProps) {
   const handleClear = () => {
     setHistory([{
       role: 'assistant',
-      text: "Chat cleared. What's the new objective?"
+      text: "Chat cleared. What would you like to work on?"
     }]);
     setErrorConfig({ visible: false, message: "", isAuthCode: false });
   }
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-180px)] max-h-[800px] border border-zinc-900 bg-zinc-950 rounded-3xl overflow-hidden shadow-xl mt-4 relative">
-      <div className="p-4 border-b border-zinc-900 bg-black/40 flex justify-between items-center z-10 shrink-0">
+    <div className="flex flex-col h-[calc(100dvh-180px)] max-h-[800px] border border-ntc-border bg-ntc-elevated rounded-2xl overflow-hidden mt-4 relative">
+      <div className="p-4 border-b border-ntc-border flex justify-between items-center z-10 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="bg-amber-500/10 p-2 rounded-xl text-amber-500">
-            <Bot size={20} className="fill-current animate-pulse" />
+          <div className="bg-ntc p-2 rounded-xl text-volt-500">
+            <Bot size={20} />
           </div>
           <div>
-            <h2 className="text-white font-black font-sans italic uppercase leading-none text-lg tracking-tight">IRONPATH COACH</h2>
-            <p className="text-[10px] text-amber-500/80 font-mono tracking-widest font-bold uppercase mt-1">AI Athletic Analyst</p>
+            <h2 className="text-white font-bold leading-none text-lg tracking-tight">Coach</h2>
+            <p className="text-xs text-zinc-500 mt-1">AI training assistant</p>
           </div>
         </div>
         <button 
           onClick={handleClear}
           className="text-zinc-500 hover:text-white p-2 rounded-full cursor-pointer transition-colors"
-          title="Reset Conversation"
+          title="Reset conversation"
         >
           <RefreshCcw size={16} />
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-6 relative z-10">
+      <div className="flex-1 overflow-y-auto p-4 space-y-5 relative z-10">
         {history.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] sm:max-w-[75%] flex flex-col gap-1.5 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
-              <div className="flex items-center gap-2 text-[10px] font-mono tracking-widest text-zinc-500 uppercase font-bold">
+            <div className={`max-w-[85%] sm:max-w-[75%] flex flex-col gap-1 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+              <div className="flex items-center gap-2 text-xs text-zinc-500 font-medium">
                 {msg.role === 'user' ? (
                   <>
-                    <span>YOU</span>
+                    <span>You</span>
                     <User size={12} />
                   </>
                 ) : (
                   <>
-                    <Bot size={12} className="text-amber-500" />
-                    <span className="text-amber-500">SYSTEM</span>
+                    <Bot size={12} className="text-volt-500" />
+                    <span className="text-volt-500">Coach</span>
                   </>
                 )}
               </div>
               <div 
-                className={`p-4 rounded-3xl text-sm leading-relaxed whitespace-pre-wrap ${
+                className={`p-4 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
                   msg.role === 'user' 
-                    ? 'bg-amber-500 text-black font-medium border-none shadow-[0_4px_14px_0_rgba(245,158,11,0.2)] rounded-tr-sm' 
-                    : 'bg-zinc-900 border border-zinc-800 text-zinc-300 shadow-inner rounded-tl-sm prose prose-invert prose-p:leading-snug prose-sm max-w-none font-mono tracking-tight'
+                    ? 'bg-white text-black font-medium rounded-br-md' 
+                    : 'bg-ntc border border-ntc-border text-zinc-300 rounded-bl-md prose prose-invert prose-p:leading-snug prose-sm max-w-none'
                 }`}
               >
                 {msg.role === 'user' ? (
@@ -133,30 +133,28 @@ export default function AICoach({ activeProfile }: AICoachProps) {
         ))}
         {loading && (
            <div className="flex justify-start">
-             <div className="bg-zinc-900 border border-zinc-800 p-4 rounded-3xl rounded-tl-sm flex items-center gap-2 text-zinc-500 text-sm font-mono mt-4 shadow-inner">
-               <Bot size={16} className="animate-bounce text-amber-500" /> Processing tactical vectors...
+             <div className="bg-ntc border border-ntc-border p-4 rounded-2xl rounded-bl-md flex items-center gap-2 text-zinc-500 text-sm mt-2">
+               <Bot size={16} className="text-volt-500" /> Thinking...
              </div>
            </div>
         )}
 
-        {/* Floating Setup Warning for Missing Config */}
         {errorConfig.visible && errorConfig.isAuthCode && (
-          <div className="my-4 mx-2 p-5 bg-rose-500/10 border border-rose-500/30 rounded-2xl animate-in fade-in slide-in-from-bottom-2 shadow-lg">
+          <div className="my-4 mx-2 p-5 bg-rose-500/10 border border-rose-500/30 rounded-2xl">
             <div className="flex items-start gap-4">
-              <div className="bg-rose-500/20 p-2.5 rounded-xl shrink-0 mt-1 font-black text-rose-500">
-                <ShieldAlert size={24} />
+              <div className="bg-rose-500/20 p-2.5 rounded-xl shrink-0 mt-1 text-rose-500">
+                <ShieldAlert size={22} />
               </div>
-              <div className="flex-1 text-sm text-zinc-300 font-mono space-y-3 leading-relaxed">
-                <p><span className="text-rose-400 font-bold uppercase tracking-wider block mb-1">Coach Connectivity Offline</span>{errorConfig.message}</p>
+              <div className="flex-1 text-sm text-zinc-300 space-y-3 leading-relaxed">
+                <p><span className="text-rose-400 font-semibold block mb-1">Coach offline</span>{errorConfig.message}</p>
                 
-                <div className="bg-black border border-rose-500/20 p-4 rounded-xl mt-3 space-y-2 text-xs text-zinc-400 font-mono shadow-inner leading-relaxed">
-                  <p className="text-rose-500 font-bold uppercase tracking-widest text-[10px] mb-2 border-b border-rose-500/20 pb-1">Activation required</p>
-                  <p>You can set your API Key in the application Settings menu (click the <strong>Sliders icon</strong> in the top header).</p>
-                  <p>Or alternatively over the <code>.env</code> file:</p>
-                  <code className="block bg-zinc-900 p-2 rounded border border-zinc-800 text-amber-400 mt-2 min-w-full overflow-x-auto whitespace-pre">
+                <div className="bg-ntc border border-ntc-border p-4 rounded-xl mt-3 space-y-2 text-xs text-zinc-400 leading-relaxed">
+                  <p className="text-rose-400 font-semibold text-xs mb-2 border-b border-ntc-border pb-2">Setup required</p>
+                  <p>Add your API key in Settings (sliders icon in the header).</p>
+                  <p>Or set in your <code>.env</code> file:</p>
+                  <code className="block bg-ntc-elevated p-2 rounded border border-ntc-border text-volt-500 mt-2 min-w-full overflow-x-auto whitespace-pre">
                     GEMINI_API_KEY=AI...your_key_here
                   </code>
-                  <p className="mt-2 text-xs italic opacity-80 pt-2 border-t border-zinc-900">Get a key automatically from Google AI Studio settings.</p>
                 </div>
               </div>
               <button 
@@ -172,17 +170,17 @@ export default function AICoach({ activeProfile }: AICoachProps) {
         <div ref={bottomRef} className="h-4" />
       </div>
 
-      <div className="p-4 border-t border-zinc-900 bg-black/40 z-10 shrink-0">
+      <div className="p-4 border-t border-ntc-border z-10 shrink-0">
         <form 
           onSubmit={(e) => { e.preventDefault(); handleSend(); }}
-          className="relative flex items-end gap-2 bg-zinc-900 border border-zinc-800 rounded-2xl p-2 focus-within:border-amber-500/50 focus-within:ring-1 focus-within:ring-amber-500/50 transition-all shadow-inner"
+          className="relative flex items-end gap-2 bg-ntc border border-ntc-border rounded-2xl p-2 focus-within:border-volt-500/50 transition-all"
         >
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             disabled={loading}
-            placeholder="Ask about training, recovery, or diet..."
-            className="flex-1 bg-transparent border-none focus:outline-none resize-none pt-2.5 pb-2 px-3 text-sm text-white placeholder-zinc-500 font-sans tracking-wide min-h-[44px] max-h-[120px] disabled:opacity-50"
+            placeholder="Ask about training, recovery, or nutrition..."
+            className="flex-1 bg-transparent border-none focus:outline-none resize-none pt-2.5 pb-2 px-3 text-sm text-white placeholder-zinc-500 min-h-[44px] max-h-[120px] disabled:opacity-50"
             rows={1}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
@@ -194,9 +192,9 @@ export default function AICoach({ activeProfile }: AICoachProps) {
           <button
             type="submit"
             disabled={!input.trim() || loading}
-            className={`p-3 rounded-xl mb-1 shrink-0 transition-all  ${
+            className={`p-3 rounded-xl mb-1 shrink-0 transition-all ${
               input.trim() && !loading
-                ? 'bg-amber-500 text-black shadow-[0_2px_10px_0_rgba(245,158,11,0.3)] hover:-translate-y-0.5 active:scale-95 cursor-pointer' 
+                ? 'bg-volt-500 text-black hover:bg-volt-400 cursor-pointer' 
                 : 'bg-zinc-800 text-zinc-600'
             }`}
           >

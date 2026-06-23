@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { AthleteProfile, Exercise, WorkoutDay } from '../types';
 import { WARM_UPS } from '../data';
 import NumpadBottomSheet from './NumpadBottomSheet';
+import { computeStreak, getTodayISO, makeSetKey } from '../utils/workoutDates';
 
 interface WorkoutScreenProps {
   activeProfile: AthleteProfile;
@@ -75,6 +76,18 @@ export default function WorkoutScreen({
   const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const [numpadOpenFor, setNumpadOpenFor] = useState<string | null>(null);
   const [numpadValue, setNumpadValue] = useState("");
+  const todayISO = getTodayISO();
+  const setKeyPrefix = `${todayISO}-${currentDay}`;
+
+  const isWorkoutFullyComplete = (sets: Record<string, boolean>) => {
+    const exercises = activeWorkout.exercises;
+    if (!exercises || exercises.length === 0) return false;
+    return exercises.every((ex, exIdx) =>
+      Array.from({ length: ex.sets }).every((_, sIdx) =>
+        !!sets[makeSetKey(todayISO, currentDay, exIdx, sIdx)]
+      )
+    );
+  };
 
   const handleToggleWarmup = (item: string) => {
     const nextCheck = { ...checkedWarmups, [item]: !checkedWarmups[item] };
@@ -92,16 +105,28 @@ export default function WorkoutScreen({
   };
 
   const handleToggleSetComplete = (exIdx: number, sIdx: number) => {
-    const key = `${currentDay}-${exIdx}-${sIdx}`;
+    const key = makeSetKey(todayISO, currentDay, exIdx, sIdx);
     const alreadyDone = !!activeProfile.completedSets[key];
-    const exercise = activeWorkout.exercises[exIdx];
     
     updateActiveProfile(prev => {
       const nextSets = { ...prev.completedSets, [key]: !alreadyDone };
-      
+      let nextWorkouts = prev.completedWorkouts || [];
+      let lastActiveDate = prev.lastActiveDate || '';
+
+      if (!alreadyDone && isWorkoutFullyComplete(nextSets)) {
+        const hasToday = nextWorkouts.some((w) => w.date === todayISO);
+        if (!hasToday) {
+          nextWorkouts = [...nextWorkouts, { date: todayISO, dayName: currentDay }];
+          lastActiveDate = todayISO;
+        }
+      }
+
       return {
         ...prev,
-        completedSets: nextSets
+        completedSets: nextSets,
+        completedWorkouts: nextWorkouts,
+        lastActiveDate,
+        streak: computeStreak(nextWorkouts)
       };
     });
 
@@ -164,7 +189,7 @@ export default function WorkoutScreen({
             <div className="bg-ntc border border-ntc-border px-4 py-2.5 rounded-xl text-center min-w-[90px]">
               <span className="text-[10px] font-medium text-zinc-500 block leading-none mb-1">Sets done</span>
               <span className="text-lg font-black text-volt-500">
-                {Object.keys(activeProfile.completedSets || {}).filter(k => k.startsWith(currentDay)).length}
+                {Object.keys(activeProfile.completedSets || {}).filter(k => k.startsWith(setKeyPrefix)).length}
               </span>
             </div>
           </div>
@@ -235,7 +260,7 @@ export default function WorkoutScreen({
         {activeWorkout.exercises && activeWorkout.exercises.length > 0 ? (
           activeWorkout.exercises.map((ex, exIdx) => {
             const exerciseSetCompletes = Array.from({ length: ex.sets }).map((_, sIdx) => {
-              const setKey = `${currentDay}-${exIdx}-${sIdx}`;
+              const setKey = makeSetKey(todayISO, currentDay, exIdx, sIdx);
               return !!activeProfile.completedSets[setKey];
             });
 
@@ -294,7 +319,7 @@ export default function WorkoutScreen({
                   <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-wide leading-none mb-3">Sets</p>
                   <div className="flex flex-wrap gap-3">
                     {Array.from({ length: ex.sets }).map((_, sIdx) => {
-                      const setKey = `${currentDay}-${exIdx}-${sIdx}`;
+                      const setKey = makeSetKey(todayISO, currentDay, exIdx, sIdx);
                       const isSetDone = !!activeProfile.completedSets[setKey];
                       
                       const strokeDash = 2 * Math.PI * 18;

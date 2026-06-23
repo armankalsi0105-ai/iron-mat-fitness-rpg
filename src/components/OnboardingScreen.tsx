@@ -24,21 +24,16 @@ export default function OnboardingScreen({ updateActiveProfile }: OnboardingScre
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black flex flex-col justify-between pt-16 pb-8 px-6 overflow-hidden">
-      {/* Background aesthetics */}
-      <div className="absolute -inset-10 bg-gradient-to-br from-amber-500/10 to-orange-650/5 blur-[100px] pointer-events-none" />
-      
+    <div className="fixed inset-0 z-50 bg-ntc flex flex-col justify-between pt-16 pb-8 px-6 overflow-hidden">
       <div className="relative z-10 max-w-md w-full mx-auto flex-1 flex flex-col">
         <div className="mb-10 text-center">
-          <div className="inline-flex items-center justify-center p-3.5 bg-amber-500/10 rounded-2xl text-amber-500 mb-4 border border-amber-500/20">
-            <Dumbbell size={28} />
-          </div>
-          <h1 className="text-3xl font-black text-white italic tracking-tight font-sans uppercase">
-            IRONPATH
+          <h1 className="text-3xl font-black text-white tracking-tight">
+            IronPath
           </h1>
-          <div className="flex justify-center gap-1.5 mt-4">
+          <p className="text-zinc-500 text-sm mt-2">Let's set up your profile</p>
+          <div className="flex justify-center gap-1.5 mt-6">
              {[1, 2, 3].map(i => (
-               <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${i === step ? 'w-8 bg-amber-500' : 'w-2 bg-zinc-800'}`} />
+               <div key={i} className={`h-1 rounded-full transition-all duration-300 ${i === step ? 'w-8 bg-volt-500' : 'w-2 bg-zinc-800'}`} />
              ))}
           </div>
         </div>
@@ -47,13 +42,13 @@ export default function OnboardingScreen({ updateActiveProfile }: OnboardingScre
           {step === 1 && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="text-center mb-8">
-                <h2 className="text-2xl font-black text-white font-sans uppercase mb-2">Identify Yourself</h2>
-                <p className="text-zinc-500 text-sm font-mono leading-relaxed">Enter your callsign and current bodyweight to establish your baseline.</p>
+                <h2 className="text-2xl font-black text-white mb-2">About you</h2>
+                <p className="text-zinc-500 text-sm leading-relaxed">Enter your name and current bodyweight.</p>
               </div>
               
               <div className="space-y-4">
-                <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 focus-within:border-amber-500 transition-colors">
-                  <label className="text-[10px] font-black tracking-widest text-zinc-500 font-mono uppercase block mb-1">Athlete Name</label>
+                <div className="bg-ntc-elevated border border-ntc-border rounded-2xl p-4 focus-within:border-volt-500/50 transition-colors">
+                  <label className="text-xs font-medium text-zinc-500 block mb-1">Name</label>
                   <div className="flex items-center gap-3">
                     <User size={16} className="text-zinc-500" />
                     <input 
@@ -61,14 +56,14 @@ export default function OnboardingScreen({ updateActiveProfile }: OnboardingScre
                       value={name}
                       autoFocus
                       onChange={e => setName(e.target.value)}
-                      placeholder="CALLSIGN"
-                      className="w-full bg-transparent text-white font-mono font-bold text-lg focus:outline-none placeholder-zinc-700 uppercase"
+                      placeholder="Your name"
+                      className="w-full bg-transparent text-white font-semibold text-lg focus:outline-none placeholder-zinc-600"
                     />
                   </div>
                 </div>
 
-                <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 focus-within:border-amber-500 transition-colors">
-                  <label className="text-[10px] font-black tracking-widest text-zinc-500 font-mono uppercase block mb-1">Current Weight</label>
+                <div className="bg-ntc-elevated border border-ntc-border rounded-2xl p-4 focus-within:border-volt-500/50 transition-colors">
+                  <label className="text-xs font-medium text-zinc-500 block mb-1">Current weight</label>
                   <div className="flex items-center gap-3">
                     <Activity size={16} className="text-zinc-500" />
                     <input 
@@ -76,9 +71,9 @@ export default function OnboardingScreen({ updateActiveProfile }: OnboardingScre
                       value={weight}
                       onChange={e => setWeight(e.target.value)}
                       placeholder="185"
-                      className="w-full bg-transparent text-white font-mono font-bold text-lg focus:outline-none placeholder-zinc-700"
+                      className="w-full bg-transparent text-white font-semibold text-lg focus:outline-none placeholder-zinc-600"
                     />
-                    <span className="text-zinc-500 font-mono text-sm font-bold">LBS</span>
+                    <span className="text-zinc-500 text-sm font-medium">lbs</span>
                   </div>
                 </div>
               </div>
@@ -88,8 +83,8 @@ export default function OnboardingScreen({ updateActiveProfile }: OnboardingScre
           {step === 2 && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                <div className="text-center mb-8">
-                <h2 className="text-2xl font-black text-white font-sans uppercase mb-2">Primary Objective</h2>
-                <p className="text-zinc-500 text-sm font-mono leading-relaxed">What adaptation are we driving?</p>
+                <h2 className="text-2xl font-black text-white mb-2">Your goal</h2>
+                <p className="text-zinc-500 text-sm leading-relaxed">What are you training for?</p>
               </div>
               
               <div className="space-y-3">
@@ -97,11 +92,11 @@ export default function OnboardingScreen({ updateActiveProfile }: OnboardingScre
                   <button
                     key={g}
                     onClick={() => setGoal(g)}
-                    className={`w-full text-left p-5 rounded-2xl border transition-all ${goal === g ? 'bg-amber-500/10 border-amber-500 text-amber-500' : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
+                    className={`w-full text-left p-5 rounded-2xl border transition-all ${goal === g ? 'bg-volt-500/10 border-volt-500 text-white' : 'bg-ntc-elevated border-ntc-border text-zinc-400 hover:border-zinc-600'}`}
                   >
                     <div className="flex items-center gap-3">
-                      <Target size={18} className={goal === g ? 'text-amber-500' : 'text-zinc-600'} />
-                      <span className="font-mono font-bold uppercase text-lg">{g}</span>
+                      <Target size={18} className={goal === g ? 'text-volt-500' : 'text-zinc-600'} />
+                      <span className="font-semibold text-lg">{g}</span>
                     </div>
                   </button>
                 ))}
@@ -112,8 +107,8 @@ export default function OnboardingScreen({ updateActiveProfile }: OnboardingScre
           {step === 3 && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                <div className="text-center mb-8">
-                <h2 className="text-2xl font-black text-white font-sans uppercase mb-2">Logistical Capacity</h2>
-                <p className="text-zinc-500 text-sm font-mono leading-relaxed">What equipment do you have access to?</p>
+                <h2 className="text-2xl font-black text-white mb-2">Equipment</h2>
+                <p className="text-zinc-500 text-sm leading-relaxed">What do you have access to?</p>
               </div>
               
               <div className="space-y-3">
@@ -121,11 +116,11 @@ export default function OnboardingScreen({ updateActiveProfile }: OnboardingScre
                   <button
                     key={eq}
                     onClick={() => setEquipment(eq)}
-                    className={`w-full text-left p-5 rounded-2xl border transition-all ${equipment === eq ? 'bg-amber-500/10 border-amber-500 text-amber-500' : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
+                    className={`w-full text-left p-5 rounded-2xl border transition-all ${equipment === eq ? 'bg-volt-500/10 border-volt-500 text-white' : 'bg-ntc-elevated border-ntc-border text-zinc-400 hover:border-zinc-600'}`}
                   >
                     <div className="flex items-center gap-3">
-                      <Dumbbell size={18} className={equipment === eq ? 'text-amber-500' : 'text-zinc-600'} />
-                      <span className="font-mono font-bold uppercase text-base">{eq}</span>
+                      <Dumbbell size={18} className={equipment === eq ? 'text-volt-500' : 'text-zinc-600'} />
+                      <span className="font-semibold text-base">{eq}</span>
                     </div>
                   </button>
                 ))}
@@ -141,9 +136,9 @@ export default function OnboardingScreen({ updateActiveProfile }: OnboardingScre
                else handleComplete();
              }}
              disabled={step === 1 && (!name || !weight)}
-             className="w-full py-5 bg-amber-500 hover:bg-amber-400 disabled:bg-zinc-800 disabled:text-zinc-600 text-black font-black uppercase text-sm rounded-2xl flex items-center justify-center gap-2 transition cursor-pointer shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] hover:shadow-[0_6px_20px_rgba(245,158,11,0.23)] active:scale-95 disabled:shadow-none"
+             className="w-full py-4 bg-white hover:bg-zinc-100 disabled:bg-zinc-800 disabled:text-zinc-600 text-black font-bold text-base rounded-full flex items-center justify-center gap-2 transition cursor-pointer active:scale-[0.98] disabled:shadow-none"
            >
-             {step < 3 ? 'Continue' : 'Initialize Protocol'} <ArrowRight size={18} />
+             {step < 3 ? 'Continue' : 'Get started'} <ArrowRight size={18} />
            </button>
         </div>
       </div>

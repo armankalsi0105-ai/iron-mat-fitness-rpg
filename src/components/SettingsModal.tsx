@@ -39,21 +39,21 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
           >
             <motion.div 
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-zinc-950 border border-zinc-800 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl"
+              className="bg-ntc-elevated border border-ntc-border rounded-2xl w-full max-w-md overflow-hidden"
             >
-              <div className="p-4 border-b border-zinc-900 flex justify-between items-center bg-black/50">
+              <div className="p-4 border-b border-ntc-border flex justify-between items-center">
                 <div className="flex items-center gap-3">
-                  <div className="bg-zinc-900 p-2 rounded-xl text-zinc-400">
+                  <div className="bg-ntc p-2 rounded-xl text-zinc-400">
                     <Settings size={20} />
                   </div>
-                  <h2 className="text-white font-black font-sans uppercase tracking-tight text-xl">System Setup</h2>
+                  <h2 className="text-white font-bold text-lg">Settings</h2>
                 </div>
                 <button 
                   onClick={onClose}
@@ -67,11 +67,11 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 
                 <div className="space-y-4">
                   <div className="flex items-start gap-3">
-                    <Key size={18} className="text-amber-500 mt-1" />
+                    <Key size={18} className="text-volt-500 mt-1" />
                     <div>
-                      <h3 className="text-white font-bold text-sm mb-1">Custom API Key</h3>
-                      <p className="text-xs text-zinc-400 leading-relaxed font-mono">
-                        Save your local Gemini API key here. By pasting it, you bypass the .env file and unlock all features like AI Coach and Avatar Forge.
+                      <h3 className="text-white font-semibold text-sm mb-1">API key</h3>
+                      <p className="text-xs text-zinc-400 leading-relaxed">
+                        Save your Gemini API key to unlock AI Coach and Avatar features.
                       </p>
                     </div>
                   </div>
@@ -81,25 +81,25 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     value={apiKey}
                     onChange={(e) => setApiKey(e.target.value)}
                     placeholder="e.g., AIza..."
-                    className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-sm text-amber-500 font-mono tracking-widest focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 outline-none"
+                    className="w-full bg-ntc border border-ntc-border rounded-xl px-4 py-3 text-sm text-white focus:border-volt-500/50 focus:ring-1 focus:ring-volt-500/50 outline-none"
                   />
                   
-                  <div className="flex items-center gap-2 text-[10px] text-zinc-500 font-mono uppercase tracking-widest bg-zinc-900/50 p-3 rounded-xl">
-                    <Shield size={12} className="text-amber-500/50" />
-                    <p>Keys are saved locally to your browser via localStorage. They are sent securely over HTTPS headers.</p>
+                  <div className="flex items-center gap-2 text-xs text-zinc-500 bg-ntc p-3 rounded-xl">
+                    <Shield size={12} className="text-zinc-600 shrink-0" />
+                    <p>Keys are stored locally in your browser.</p>
                   </div>
                 </div>
 
                 <button
                   onClick={handleSave}
-                  className="w-full py-4 bg-amber-500 text-black font-black uppercase tracking-widest rounded-2xl hover:bg-amber-400 transition-colors flex items-center justify-center gap-2 shadow-[0_4px_20px_0_rgba(245,158,11,0.2)]"
+                  className="w-full py-4 bg-white text-black font-bold rounded-full hover:bg-zinc-100 transition-colors flex items-center justify-center gap-2"
                 >
                   {saved ? (
                     <>
                       <CheckCircle size={18} />
-                      Saved & Active
+                      Saved
                     </>
-                  ) : "Save Local Key"}
+                  ) : "Save key"}
                 </button>
               </div>
             </motion.div>

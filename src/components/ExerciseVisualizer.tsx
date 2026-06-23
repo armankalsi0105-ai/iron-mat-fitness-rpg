@@ -272,8 +272,8 @@ export default function ExerciseVisualizer({ exerciseName, targetSpecialization 
           <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/30" />
           
           {/* Active Visual Target indicator */}
-          <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-black/80 backdrop-blur-md border border-amber-500/30 text-[8px] font-mono font-black uppercase text-amber-500 tracking-wider flex items-center gap-1">
-            <Eye size={10} className="text-amber-500" /> Active Demonstration
+          <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-black/80 backdrop-blur-md border border-volt-500/30 text-[8px] font-mono font-black uppercase text-volt-500 tracking-wider flex items-center gap-1">
+            <Eye size={10} className="text-volt-500" /> Active Demonstration
           </div>
 
           {/* Real-time vector motion simulator trace overlaid on image */}
@@ -283,12 +283,12 @@ export default function ExerciseVisualizer({ exerciseName, targetSpecialization 
                 <motion.div 
                   animate={{ y: [-24, 20, -24] }}
                   transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                  className="w-9 h-9 rounded-full bg-amber-500/20 border border-amber-500 flex items-center justify-center shadow-[0_0_15px_rgba(245,158,11,0.4)]"
+                  className="w-9 h-9 rounded-full bg-volt-500/20 border border-volt-500 flex items-center justify-center shadow-[0_0_15px_rgba(205,245,0,0.4)]"
                 >
-                  <Dumbbell size={14} className="text-amber-400 rotate-45" />
+                  <Dumbbell size={14} className="text-volt-400 rotate-45" />
                 </motion.div>
                 {/* Glowing wire-frame cable line */}
-                <div className="h-20 w-[1px] bg-gradient-to-b from-amber-500 via-amber-500/20 to-transparent" />
+                <div className="h-20 w-[1px] bg-gradient-to-b from-volt-500 via-volt-500/20 to-transparent" />
               </div>
             )}
 
@@ -297,14 +297,14 @@ export default function ExerciseVisualizer({ exerciseName, targetSpecialization 
                 <motion.div 
                   animate={{ scale: [1, 1.4, 1], opacity: [0.5, 0.9, 0.5] }}
                   transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
-                  className="w-12 h-12 rounded-full border border-orange-500/40 bg-orange-500/10 flex items-center justify-center"
+                  className="w-12 h-12 rounded-full border border-volt-600/40 bg-volt-600/10 flex items-center justify-center"
                 />
                 <motion.div 
                   animate={{ x: [-15, 15, -15] }}
                   transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-                  className="w-8 h-8 rounded-lg bg-amber-500/30 border border-amber-400 flex items-center justify-center"
+                  className="w-8 h-8 rounded-lg bg-volt-500/30 border border-volt-400 flex items-center justify-center"
                 >
-                  <Zap size={12} className="text-amber-300" />
+                  <Zap size={12} className="text-volt-400" />
                 </motion.div>
               </div>
             )}
@@ -312,7 +312,7 @@ export default function ExerciseVisualizer({ exerciseName, targetSpecialization 
             {visual.pattern === 'hinge' && (
               <div className="relative">
                 {/* Visual hinge arc */}
-                <svg className="w-20 h-20 text-amber-500/40" viewBox="0 0 100 100">
+                <svg className="w-20 h-20 text-volt-500/40" viewBox="0 0 100 100">
                   <motion.path 
                     d="M 20,80 Q 50,20 80,80" 
                     fill="none" 
@@ -324,7 +324,7 @@ export default function ExerciseVisualizer({ exerciseName, targetSpecialization 
                     cx="50" 
                     cy="40" 
                     r="6" 
-                    fill="#f59e0b"
+                    fill="#CDF500"
                     animate={{ cy: [40, 70, 40], cx: [50, 40, 50] }}
                     transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
                   />
@@ -339,7 +339,7 @@ export default function ExerciseVisualizer({ exerciseName, targetSpecialization 
                     key={i}
                     animate={{ height: [8, 36, 8] }}
                     transition={{ duration: 1.5, delay: i * 0.15, repeat: Infinity, ease: "easeInOut" }}
-                    className="w-1.5 bg-gradient-to-t from-amber-500 to-orange-400 rounded-full"
+                    className="w-1.5 bg-gradient-to-t from-volt-500 to-volt-500 rounded-full"
                   />
                 ))}
               </div>
@@ -349,9 +349,9 @@ export default function ExerciseVisualizer({ exerciseName, targetSpecialization 
               <motion.div
                 animate={{ scale: [0.9, 1.15, 0.9], rotate: [0, 180, 360] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="w-14 h-14 rounded-full border-2 border-dashed border-amber-500/40 flex items-center justify-center"
+                className="w-14 h-14 rounded-full border-2 border-dashed border-volt-500/40 flex items-center justify-center"
               >
-                <div className="w-6 h-6 rounded-full bg-amber-500/10 border border-amber-400/50" />
+                <div className="w-6 h-6 rounded-full bg-volt-500/10 border border-volt-400/50" />
               </motion.div>
             )}
           </div>
@@ -361,7 +361,7 @@ export default function ExerciseVisualizer({ exerciseName, targetSpecialization 
         <div className="bg-zinc-900 border border-zinc-850 p-2.5 rounded-xl">
           <div className="flex justify-between items-center text-[8px] font-mono text-zinc-500 font-bold mb-1.5 uppercase tracking-wider">
             <span>CONCENTRIC (LIFT)</span>
-            <span className="text-amber-500">PAUSE</span>
+            <span className="text-volt-500">PAUSE</span>
             <span>ECCENTRIC (LOWER)</span>
           </div>
           <div className="h-1.5 w-full bg-zinc-950 rounded-full overflow-hidden relative">
@@ -371,7 +371,7 @@ export default function ExerciseVisualizer({ exerciseName, targetSpecialization 
                 width: ["15%", "35%", "15%"]
               }}
               transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute top-0 bottom-0 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full shadow-[0_0_8px_#f59e0b]"
+              className="absolute top-0 bottom-0 bg-gradient-to-r from-volt-500 to-volt-600 rounded-full shadow-[0_0_8px_#CDF500]"
             />
           </div>
           <div className="flex justify-between items-center text-[9px] font-mono text-zinc-400 font-black mt-1 uppercase">
@@ -386,7 +386,7 @@ export default function ExerciseVisualizer({ exerciseName, targetSpecialization 
       <div className="sm:col-span-6 flex flex-col justify-between gap-3 relative z-10">
         <div className="bg-zinc-900/40 border border-zinc-850/60 p-3 rounded-xl flex-1 flex flex-col justify-between">
           <div className="text-[10px] font-black text-zinc-400 font-mono uppercase tracking-widest border-b border-zinc-900 pb-1.5 flex items-center gap-1.5">
-            <Flame size={12} className="text-orange-500 animate-pulse" /> Target Muscle Radar
+            <Flame size={12} className="text-volt-600 animate-pulse" /> Target Muscle Radar
           </div>
 
           {/* Beautiful vector stylized body map highlighting muscle groups */}
@@ -409,7 +409,7 @@ export default function ExerciseVisualizer({ exerciseName, targetSpecialization 
                 {visual.primaryMuscle === 'lats' && (
                   <motion.path 
                     d="M 34,42 Q 50,45 66,42 L 56,88 Q 50,88 44,88 Z" 
-                    fill="#f59e0b" 
+                    fill="#CDF500" 
                     className="opacity-80"
                     animate={{ fillOpacity: [0.3, 0.9, 0.3] }}
                     transition={{ duration: 1.8, repeat: Infinity }}
@@ -419,7 +419,7 @@ export default function ExerciseVisualizer({ exerciseName, targetSpecialization 
                 {visual.primaryMuscle === 'back' && (
                   <motion.path 
                     d="M 35,33 Q 50,30 65,33 L 60,78 Q 50,80 40,78 Z" 
-                    fill="#f59e0b" 
+                    fill="#CDF500" 
                     className="opacity-80"
                     animate={{ fillOpacity: [0.3, 0.9, 0.3] }}
                     transition={{ duration: 1.8, repeat: Infinity }}
@@ -429,7 +429,7 @@ export default function ExerciseVisualizer({ exerciseName, targetSpecialization 
                 {visual.primaryMuscle === 'chest' && (
                   <motion.path 
                     d="M 35,32 Q 50,38 65,32 L 62,56 Q 50,58 38,56 Z" 
-                    fill="#f59e0b" 
+                    fill="#CDF500" 
                     className="opacity-80"
                     animate={{ fillOpacity: [0.3, 0.9, 0.3] }}
                     transition={{ duration: 1.8, repeat: Infinity }}
@@ -440,13 +440,13 @@ export default function ExerciseVisualizer({ exerciseName, targetSpecialization 
                   <g>
                     <motion.circle 
                       cx="31" cy="30" r="5" 
-                      fill="#f59e0b" 
+                      fill="#CDF500" 
                       animate={{ fillOpacity: [0.4, 1, 0.4] }}
                       transition={{ duration: 1.8, repeat: Infinity }}
                     />
                     <motion.circle 
                       cx="69" cy="30" r="5" 
-                      fill="#f59e0b" 
+                      fill="#CDF500" 
                       animate={{ fillOpacity: [0.4, 1, 0.4] }}
                       transition={{ duration: 1.8, repeat: Infinity }}
                     />
@@ -457,7 +457,7 @@ export default function ExerciseVisualizer({ exerciseName, targetSpecialization 
                   <g>
                     <motion.path 
                       d="M 28,38 Q 23,55 24,70" 
-                      stroke="#f59e0b" 
+                      stroke="#CDF500" 
                       strokeWidth="6" 
                       strokeLinecap="round" 
                       fill="none" 
@@ -466,7 +466,7 @@ export default function ExerciseVisualizer({ exerciseName, targetSpecialization 
                     />
                     <motion.path 
                       d="M 72,38 Q 77,55 76,70" 
-                      stroke="#f59e0b" 
+                      stroke="#CDF500" 
                       strokeWidth="6" 
                       strokeLinecap="round" 
                       fill="none" 
@@ -480,7 +480,7 @@ export default function ExerciseVisualizer({ exerciseName, targetSpecialization 
                   <g>
                     <motion.path 
                       d="M 21,70 Q 20,83 22,94" 
-                      stroke="#f59e0b" 
+                      stroke="#CDF500" 
                       strokeWidth="4" 
                       strokeLinecap="round" 
                       fill="none" 
@@ -489,7 +489,7 @@ export default function ExerciseVisualizer({ exerciseName, targetSpecialization 
                     />
                     <motion.path 
                       d="M 79,70 Q 80,83 78,94" 
-                      stroke="#f59e0b" 
+                      stroke="#CDF500" 
                       strokeWidth="4" 
                       strokeLinecap="round" 
                       fill="none" 
@@ -503,7 +503,7 @@ export default function ExerciseVisualizer({ exerciseName, targetSpecialization 
                   <g>
                     <motion.path 
                       d="M 37,112 L 44,142" 
-                      stroke="#f59e0b" 
+                      stroke="#CDF500" 
                       strokeWidth="8" 
                       strokeLinecap="round" 
                       fill="none" 
@@ -512,7 +512,7 @@ export default function ExerciseVisualizer({ exerciseName, targetSpecialization 
                     />
                     <motion.path 
                       d="M 63,112 L 56,142" 
-                      stroke="#f59e0b" 
+                      stroke="#CDF500" 
                       strokeWidth="8" 
                       strokeLinecap="round" 
                       fill="none" 
@@ -525,7 +525,7 @@ export default function ExerciseVisualizer({ exerciseName, targetSpecialization 
                 {visual.primaryMuscle === 'core' && (
                   <motion.path 
                     d="M 39,64 Q 50,68 61,64 L 59,96 Q 50,98 41,96 Z" 
-                    fill="#f59e0b" 
+                    fill="#CDF500" 
                     className="opacity-80"
                     animate={{ fillOpacity: [0.3, 0.9, 0.3] }}
                     transition={{ duration: 1.8, repeat: Infinity }}
@@ -536,7 +536,7 @@ export default function ExerciseVisualizer({ exerciseName, targetSpecialization 
 
             <div className="flex-1 space-y-1.5 text-left">
               <span className="text-[10px] font-mono text-zinc-500 font-bold uppercase block">Specialization Zone</span>
-              <span className="text-xs font-black font-mono text-amber-500 uppercase tracking-wider block bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/15 w-fit">
+              <span className="text-xs font-black font-mono text-volt-500 uppercase tracking-wider block bg-volt-500/10 px-2 py-0.5 rounded border border-volt-500/15 w-fit">
                 {visual.primaryMuscle.toUpperCase()}
               </span>
               <p className="text-[10px] text-zinc-400 leading-normal font-medium max-w-[130px]">

@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Play, Flame, ChevronRight, ActivitySquare, TrendingUp } from 'lucide-react';
 import { AthleteProfile, WorkoutDay } from '../types';
+import { computeStreak, countWorkoutsInLastDays } from '../utils/workoutDates';
 
 interface HomeScreenProps {
   currentDay: string;
@@ -24,9 +25,11 @@ export default function HomeScreen({
 
   const weeklyWorkouts = useMemo(() => {
     if (!activeProfile.completedWorkouts) return 0;
-    const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-    return activeProfile.completedWorkouts.filter(w => new Date(w.date) >= oneWeekAgo).length;
+    return countWorkoutsInLastDays(activeProfile.completedWorkouts, 7);
+  }, [activeProfile.completedWorkouts]);
+
+  const streak = useMemo(() => {
+    return computeStreak(activeProfile.completedWorkouts || []);
   }, [activeProfile.completedWorkouts]);
 
   return (
@@ -45,7 +48,7 @@ export default function HomeScreen({
           <div className="text-right">
              <span className="text-sm font-bold text-white flex items-center justify-end gap-1.5 bg-ntc-elevated border border-ntc-border rounded-full px-3 py-1.5">
                <Flame size={14} className="text-volt-500 fill-volt-500" />
-               {activeProfile.streak || 0} day streak
+               {streak} day streak
              </span>
           </div>
         </div>

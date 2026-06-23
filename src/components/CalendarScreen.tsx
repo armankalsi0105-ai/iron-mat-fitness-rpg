@@ -6,6 +6,13 @@ Description: Calendaring and consistency metrics tracker for student athletes wi
 import React from 'react';
 import { Calendar, Trophy } from 'lucide-react';
 import { AthleteProfile } from '../types';
+import {
+  CALENDAR_WINDOW_DAYS,
+  computeStreak,
+  dateForCalendarIndex,
+  dayNameForISO,
+  isISODateString,
+} from '../utils/workoutDates';
 
 interface CalendarScreenProps {
   activeProfile: AthleteProfile;
@@ -18,51 +25,51 @@ export default function CalendarScreen({
   updateActiveProfile,
   triggerToast
 }: CalendarScreenProps) {
-  
-  const totalDays = 28;
   const completedWorkouts = activeProfile.completedWorkouts || [];
+  const windowDates = new Set(
+    Array.from({ length: CALENDAR_WINDOW_DAYS }, (_, idx) => dateForCalendarIndex(idx))
+  );
 
   const handleToggleDay = (dayIdx: number) => {
-    const dayDateKey = `day-${dayIdx}`;
-    const isAlreadyCompleted = completedWorkouts.some(cw => cw.date === dayDateKey);
+    const isoDate = dateForCalendarIndex(dayIdx);
+    const isAlreadyCompleted = completedWorkouts.some((cw) => cw.date === isoDate);
 
-    updateActiveProfile(prev => {
+    updateActiveProfile((prev) => {
       const currentVal = prev.completedWorkouts || [];
       let nextVal = [...currentVal];
 
       if (isAlreadyCompleted) {
-        nextVal = nextVal.filter(d => d.date !== dayDateKey);
+        nextVal = nextVal.filter((d) => d.date !== isoDate);
       } else {
         nextVal.push({
-          date: dayDateKey,
-          dayName: `Day ${dayIdx + 1}`,
+          date: isoDate,
+          dayName: dayNameForISO(isoDate),
           count: 1
         });
-      }
-
-      let currentStreak = prev.streak || 0;
-      if (!isAlreadyCompleted) {
-        currentStreak += 1;
-      } else {
-        currentStreak = Math.max(0, currentStreak - 1);
       }
 
       return {
         ...prev,
         completedWorkouts: nextVal,
-        streak: currentStreak
+        streak: computeStreak(nextVal)
       };
     });
 
+    const label = new Date(`${isoDate}T00:00:00`).toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric'
+    });
     if (!isAlreadyCompleted) {
-      triggerToast(`Day ${dayIdx + 1} logged!`);
+      triggerToast(`${label} logged as training success!`);
     } else {
-      triggerToast(`Day ${dayIdx + 1} cleared.`);
+      triggerToast(`${label} log cleared.`);
     }
   };
 
-  const currentMonthCompletesCount = completedWorkouts.length;
-  const consistencyRate = Math.round((currentMonthCompletesCount / totalDays) * 100);
+  const currentMonthCompletesCount = completedWorkouts.filter(
+    (cw) => isISODateString(cw.date) && windowDates.has(cw.date)
+  ).length;
+  const consistencyRate = Math.round((currentMonthCompletesCount / CALENDAR_WINDOW_DAYS) * 100);
 
   return (
     <div className="space-y-6">
@@ -84,7 +91,7 @@ export default function CalendarScreen({
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-ntc border border-ntc-border p-4 rounded-xl text-center">
             <span className="text-xs text-zinc-500 block">Days logged</span>
-            <span className="text-3xl font-black text-white block mt-1">{currentMonthCompletesCount} <span className="text-sm font-medium text-zinc-500">/ {totalDays}</span></span>
+            <span className="text-3xl font-black text-white block mt-1">{currentMonthCompletesCount} <span className="text-sm font-medium text-zinc-500">/ {CALENDAR_WINDOW_DAYS}</span></span>
           </div>
 
           <div className="bg-ntc border border-ntc-border p-4 rounded-xl text-center">
@@ -100,14 +107,15 @@ export default function CalendarScreen({
         </p>
         
         <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 justify-center items-center">
-          {Array.from({ length: totalDays }).map((_, idx) => {
-            const dayDateKey = `day-${idx}`;
-            const isCompleted = completedWorkouts.some(cw => cw.date === dayDateKey);
+          {Array.from({ length: CALENDAR_WINDOW_DAYS }).map((_, idx) => {
+            const isoDate = dateForCalendarIndex(idx);
+            const isCompleted = completedWorkouts.some((cw) => cw.date === isoDate);
             const isRestCycle = (idx + 1) % 7 === 0;
+            const dayNum = new Date(`${isoDate}T00:00:00`).getDate();
 
             return (
               <button
-                key={idx}
+                key={isoDate}
                 onClick={() => handleToggleDay(idx)}
                 className={`h-11 w-full rounded-xl flex flex-col justify-center items-center border transition-all cursor-pointer relative select-none ${
                   isCompleted 
@@ -117,7 +125,7 @@ export default function CalendarScreen({
                       : 'bg-ntc border-ntc-border text-zinc-500 hover:border-zinc-600'
                 }`}
               >
-                <span className="text-sm font-bold leading-none">{idx + 1}</span>
+                <span className="text-sm font-bold leading-none">{dayNum}</span>
               </button>
             );
           })}

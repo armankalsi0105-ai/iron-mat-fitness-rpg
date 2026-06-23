@@ -25,6 +25,7 @@ import ProfileScreen from './components/ProfileScreen';
 import OnboardingScreen from './components/OnboardingScreen';
 import AICoach from './components/AICoach';
 import { getStorageItem, setStorageItem } from './utils/storage';
+import { loadVaultFromStorage, saveVaultToStorage } from './utils/vaultStorage';
 
 const DEFAULT_RITUALS = [
   {
@@ -88,17 +89,8 @@ export default function App() {
     profiles: AthleteProfile[];
     currentProfileId: string;
   }>(() => {
-    const saved = typeof window !== 'undefined' ? getStorageItem('iron_mat_vault_v3') : null;
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed && Array.isArray(parsed.profiles) && parsed.currentProfileId) {
-          return parsed;
-        }
-      } catch (e) {
-        console.error("Failed loading local athlete ledger", e);
-      }
-    }
+    const saved = typeof window !== 'undefined' ? loadVaultFromStorage() : null;
+    if (saved) return saved;
 
     // Default Seed Profile
     const seedId = "combatant-seed";
@@ -127,46 +119,59 @@ export default function App() {
     };
   });
 
+  const [storageSaveFailed, setStorageSaveFailed] = useState(false);
+
   // Keep local storage in perfect synchronization
   useEffect(() => {
-    setStorageItem('iron_mat_vault_v3', JSON.stringify(vault));
+    const ok = saveVaultToStorage(vault);
+    if (!ok) {
+      setStorageSaveFailed(true);
+    }
   }, [vault]);
 
-  // Current active profile helper
-  const activeProfile = useMemo(() => {
+  // Migrate missing array fields; only seed profile gets demo biometrics
+  useEffect(() => {
     const profile = vault.profiles.find(p => p.id === vault.currentProfileId) || vault.profiles[0];
-    // Retroactively add student athlete biometric array defaults if missing from cache
+    if (!profile) return;
+
     let mutated = false;
     const nextProfile = { ...profile };
-    
-    if (nextProfile.age === undefined) { nextProfile.age = 16; mutated = true; }
-    if (nextProfile.height === undefined) { nextProfile.height = "5ft 9in"; mutated = true; }
-    if (nextProfile.weight === undefined) { nextProfile.weight = 145; mutated = true; }
-    if (nextProfile.sport === undefined) { nextProfile.sport = "Wrestling"; mutated = true; }
-    if (nextProfile.goals === undefined) { nextProfile.goals = "Build explosive speed & defense."; mutated = true; }
+    const isSeedProfile = nextProfile.id === 'combatant-seed';
 
     if (!nextProfile.bodyWeightLogs) { nextProfile.bodyWeightLogs = []; mutated = true; }
     if (!nextProfile.completedWorkouts) { nextProfile.completedWorkouts = []; mutated = true; }
     if (!nextProfile.personalBests) {
-      nextProfile.personalBests = {
-        "Bench Press": 135,
-        "Squat": 185,
-        "Deadlift": 225,
-        "Overhead Press": 95,
-        "Pull-Ups": 0
-      };
+      nextProfile.personalBests = isSeedProfile
+        ? {
+            'Bench Press': 135,
+            Squat: 185,
+            Deadlift: 225,
+            'Overhead Press': 95,
+            'Pull-Ups': 0
+          }
+        : {};
       mutated = true;
     }
 
-    if (mutated) {
-      setTimeout(() => {
-        setVault(prev => ({
-          ...prev,
-          profiles: prev.profiles.map(p => p.id === nextProfile.id ? nextProfile : p)
-        }));
-      }, 0);
+    if (isSeedProfile) {
+      if (nextProfile.age === undefined) { nextProfile.age = 16; mutated = true; }
+      if (nextProfile.height === undefined) { nextProfile.height = '5ft 9in'; mutated = true; }
+      if (nextProfile.weight === undefined) { nextProfile.weight = 145; mutated = true; }
+      if (nextProfile.sport === undefined) { nextProfile.sport = 'Wrestling'; mutated = true; }
+      if (nextProfile.goals === undefined) { nextProfile.goals = 'Build explosive speed & defense.'; mutated = true; }
     }
-    return nextProfile;
+
+    if (mutated) {
+      setVault(prev => ({
+        ...prev,
+        profiles: prev.profiles.map(p => p.id === nextProfile.id ? nextProfile : p)
+      }));
+    }
+  }, [vault.profiles, vault.currentProfileId]);
+
+  // Current active profile helper
+  const activeProfile = useMemo(() => {
+    return vault.profiles.find(p => p.id === vault.currentProfileId) || vault.profiles[0];
   }, [vault]);
 
   // --- STATE FOR CURRENT APP FLOW ---
@@ -214,6 +219,8 @@ export default function App() {
   const [timerMax, setTimerMax] = useState(90); // default rest 90s
   const [timerRemaining, setTimerRemaining] = useState(90);
   const [timerRunning, setTimerRunning] = useState(false);
+  const timerMaxRef = useRef(timerMax);
+  timerMaxRef.current = timerMax;
 
   // Warmup protocol checkboxes
   const [checkedWarmups, setCheckedWarmups] = useState<Record<string, boolean>>({});
@@ -221,12 +228,21 @@ export default function App() {
   const [warmupTimerActive, setWarmupTimerActive] = useState(false);
   const [warmupTimeRemaining, setWarmupTimeRemaining] = useState(300);
 
-  // Sound play helper (using synthesized Web Audio buzzer alerts so we don't have broken public assets!)
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const gainNodeRef = useRef<GainNode | null>(null);
+  const synthIntervalRef = useRef<any>(null);
+
   const playRestAlertAudio = () => {
     try {
-      const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext;
-      if (!AudioCtxClass) return;
-      const ctx = new AudioCtxClass();
+      if (!audioCtxRef.current) {
+        const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext;
+        if (!AudioCtxClass) return;
+        audioCtxRef.current = new AudioCtxClass();
+      }
+      const ctx = audioCtxRef.current;
+      if (ctx.state === 'suspended') {
+        ctx.resume();
+      }
       
       // Beep tone 1
       const osc1 = ctx.createOscillator();
@@ -250,32 +266,26 @@ export default function App() {
 
   // Rest timer ticker decrementation effect
   useEffect(() => {
-    let ticker: any = null;
-    if (timerRunning && timerRemaining > 0) {
-      ticker = setInterval(() => {
-        setTimerRemaining(prev => {
-          if (prev <= 1) {
-            setTimerRunning(false);
-            playRestAlertAudio();
-            return timerMax;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    return () => {
-      if (ticker) clearInterval(ticker);
-    };
-  }, [timerRunning, timerRemaining, timerMax]);
+    if (!timerRunning) return;
+
+    const ticker = setInterval(() => {
+      setTimerRemaining(prev => {
+        if (prev <= 1) {
+          setTimerRunning(false);
+          playRestAlertAudio();
+          return timerMaxRef.current;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(ticker);
+  }, [timerRunning]);
 
   // Combat Rhythm Synth state & refs (Browser-synthesized sub-beats)
   const [isSynthRunning, setIsSynthRunning] = useState<boolean>(false);
   const [synthTrack, setSynthTrack] = useState<string>("focus");
   const [synthVolume, setSynthVolume] = useState<number>(0.2);
-
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const gainNodeRef = useRef<GainNode | null>(null);
-  const synthIntervalRef = useRef<any>(null);
 
   const startCombatSynth = (track: string, vol: number) => {
     try {
@@ -301,7 +311,13 @@ export default function App() {
 
       // Create a beat generator
       let stepIdx = 0;
-      const beatInterval = track === "intense" ? 250 : track === "focus" ? 500 : 800; // fast pacing for intense
+      const beatIntervals: Record<string, number> = {
+        combat: 250,
+        intense: 250,
+        focus: 500,
+        chill: 800,
+      };
+      const beatInterval = beatIntervals[track] ?? 500;
 
       synthIntervalRef.current = setInterval(() => {
         if (!audioCtxRef.current || audioCtxRef.current.state === 'suspended') return;
@@ -441,6 +457,12 @@ export default function App() {
 
   return (
     <div className="min-h-dvh bg-ntc text-zinc-100 font-sans tracking-tight pb-28 relative overflow-x-hidden selection:bg-volt-500 selection:text-black">
+      {storageSaveFailed && (
+        <div className="fixed top-0 left-0 right-0 z-[60] bg-rose-600 text-white text-xs font-semibold text-center px-4 py-2">
+          Progress couldn&apos;t be saved — storage full or private browsing.
+        </div>
+      )}
+
       {activeProfile.name === "NEW ATHLETE" && (
         <OnboardingScreen updateActiveProfile={updateActiveProfile} />
       )}
@@ -758,10 +780,13 @@ export default function App() {
       <AvatarCreator
         currentAvatarUrl={activeProfile.avatarUrl}
         onAvatarGenerated={(newUrl) => {
-          updateActiveProfile(prev => ({
-            ...prev,
-            avatarUrl: newUrl
-          }));
+          updateActiveProfile(prev => {
+            if (newUrl.startsWith('data:') && newUrl.length > 200_000) {
+              setStorageItem(`iron_mat_avatar_${prev.id}`, newUrl);
+              return { ...prev, avatarUrl: `__avatar__:${prev.id}` };
+            }
+            return { ...prev, avatarUrl: newUrl };
+          });
           triggerToast("Combatant visual profile successfully forged!");
         }}
         isOpen={avatarModalOpen}

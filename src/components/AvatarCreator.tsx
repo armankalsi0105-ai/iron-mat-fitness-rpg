@@ -101,25 +101,23 @@ export default function AvatarCreator({ currentAvatarUrl, onAvatarGenerated, isO
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="w-full max-w-lg bg-zinc-950 border border-zinc-800 rounded-3xl overflow-hidden shadow-2xl relative"
+            className="w-full max-w-lg bg-ntc-elevated border border-ntc-border rounded-2xl overflow-hidden relative"
           >
-            {/* Design header lines */}
-            <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-amber-500 to-rose-500" />
 
             <div className="p-6 space-y-6">
               {/* Header */}
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-[10px] font-black tracking-widest text-amber-500 uppercase flex items-center gap-1">
-                    <Sparkles size={11} className="fill-amber-500" /> Neural Forge
+                  <p className="text-xs font-semibold text-volt-500 uppercase flex items-center gap-1">
+                    <Sparkles size={11} className="text-volt-500" /> Avatar
                   </p>
-                  <h3 className="text-xl font-black text-white tracking-tight flex items-center gap-2 mt-1">
-                    <Wand2 size={20} className="text-amber-500" /> Customize Combatant Avatar
+                  <h3 className="text-xl font-bold text-white tracking-tight flex items-center gap-2 mt-1">
+                    <Wand2 size={20} className="text-volt-500" /> Create your avatar
                   </h3>
                 </div>
                 <button
@@ -152,8 +150,8 @@ export default function AvatarCreator({ currentAvatarUrl, onAvatarGenerated, isO
                         onClick={() => setIsEditMode(false)}
                         className={`flex-1 py-2 rounded-xl text-xs font-black uppercase transition-all flex items-center justify-center gap-2 border ${
                           !isEditMode
-                            ? "bg-amber-500 text-black border-transparent shadow-[0_0_12px_rgba(245,158,11,0.2)]"
-                            : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white"
+                            ? "bg-white text-black border-transparent"
+                            : "bg-ntc border-ntc-border text-zinc-400 hover:text-white"
                         }`}
                       >
                         <ImageIcon size={14} /> Fresh Forge
@@ -162,8 +160,8 @@ export default function AvatarCreator({ currentAvatarUrl, onAvatarGenerated, isO
                         onClick={() => setIsEditMode(true)}
                         className={`flex-1 py-2 rounded-xl text-xs font-black uppercase transition-all flex items-center justify-center gap-2 border ${
                           isEditMode
-                            ? "bg-amber-400 text-black border-transparent shadow-[0_0_12px_rgba(245,158,11,0.2)]"
-                            : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white"
+                            ? "bg-white text-black border-transparent"
+                            : "bg-ntc border-ntc-border text-zinc-400 hover:text-white"
                         }`}
                         title={currentAvatarUrl.startsWith("data:") ? "Adjust active avatar image" : "Requires previously forged avatar"}
                         disabled={!currentAvatarUrl.startsWith("data:")}
@@ -173,7 +171,7 @@ export default function AvatarCreator({ currentAvatarUrl, onAvatarGenerated, isO
                       </button>
                     </div>
                     {!currentAvatarUrl.startsWith("data:") && isEditMode && (
-                      <p className="text-[9px] text-amber-500 font-semibold mt-1">
+                      <p className="text-xs text-volt-500 font-medium mt-1">
                         * Forge a Fresh Avatar first to unlock 'Edit Active' parameter.
                       </p>
                     )}
@@ -191,7 +189,7 @@ export default function AvatarCreator({ currentAvatarUrl, onAvatarGenerated, isO
                     placeholder="Describe how your ultimate combat avatar looks (e.g. A musclebound ninja wearing gold headbands, brutal cyberpunk dojo, anime graphic style)..."
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-amber-500/50 resize-none font-sans"
+                    className="w-full bg-ntc border border-ntc-border rounded-xl p-3 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-volt-500/50 resize-none font-sans"
                     disabled={generating}
                   />
                 </div>
@@ -205,7 +203,7 @@ export default function AvatarCreator({ currentAvatarUrl, onAvatarGenerated, isO
                         key={i}
                         type="button"
                         onClick={() => setPrompt(p)}
-                        className="text-[10px] text-zinc-400 bg-zinc-900 border border-zinc-800 px-2.5 py-1 rounded-lg hover:border-amber-500/40 hover:text-white transition-all text-left truncate max-w-[280px]"
+                        className="text-xs text-zinc-400 bg-ntc border border-ntc-border px-2.5 py-1 rounded-lg hover:border-volt-500/40 hover:text-white transition-all text-left truncate max-w-[280px]"
                         disabled={generating}
                       >
                         {p}
@@ -220,12 +218,12 @@ export default function AvatarCreator({ currentAvatarUrl, onAvatarGenerated, isO
                 {generating ? (
                   <div className="space-y-3 bg-zinc-900/40 border border-zinc-800/80 p-4 rounded-2xl">
                     <div className="flex items-center gap-3">
-                      <Loader2 className="h-5 w-5 text-amber-500 animate-spin" />
+                      <Loader2 className="h-5 w-5 text-volt-500 animate-spin" />
                       <p className="text-xs font-black text-white font-mono tracking-wider">{getLoadingMessage()}</p>
                     </div>
                     <div className="h-1 bg-zinc-800 rounded-full overflow-hidden">
                       <motion.div
-                        className="h-full bg-gradient-to-r from-amber-500 to-rose-500"
+                        className="h-full bg-volt-500"
                         animate={{ x: ["-100%", "100%"] }}
                         transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
                         style={{ width: "40%" }}
@@ -242,7 +240,7 @@ export default function AvatarCreator({ currentAvatarUrl, onAvatarGenerated, isO
                     </button>
                     <button
                       onClick={handleGenerate}
-                      className="flex-1 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-black py-3 px-5 rounded-xl text-xs font-black uppercase shadow-lg shadow-amber-500/10 hover:shadow-amber-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                      className="flex-1 bg-white text-black py-3 px-5 rounded-full text-sm font-bold active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                     >
                       <RefreshCw size={14} className="animate-spin" />
                       {isEditMode ? "Tinker & Modify Visual" : "Synthesize Matrix Profile"}
