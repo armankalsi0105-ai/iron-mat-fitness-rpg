@@ -12,17 +12,62 @@ const PORT = Number(process.env.PORT) || 3000;
 // Middleware
 app.use(express.json({ limit: "15mb" })); // Support large base64 avatar images
 
-function isMissingApiKey(customKey?: string): boolean {
-  const key = customKey || process.env.GEMINI_API_KEY;
-  return !key || key === "your_gemini_api_key_here";
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX = 40;
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+function getClientIp(req: express.Request): string {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (typeof forwarded === 'string') {
+    return forwarded.split(',')[0].trim();
+  }
+  return req.socket.remoteAddress || 'unknown';
 }
 
-function getAI(customKey?: string): GoogleGenAI {
-  let key = customKey || process.env.GEMINI_API_KEY;
-  if (!key) {
-    throw new Error("GEMINI_API_KEY environment variable is required.");
+function isLocalhost(req: express.Request): boolean {
+  const ip = getClientIp(req);
+  return ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1';
+}
+
+function rateLimit(req: express.Request, res: express.Response, next: express.NextFunction) {
+  const ip = getClientIp(req);
+  const now = Date.now();
+  let entry = rateLimitMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    entry = { count: 0, resetAt: now + RATE_LIMIT_WINDOW_MS };
+    rateLimitMap.set(ip, entry);
   }
-  key = key.replace(/['"\s]+/g, '');
+  entry.count += 1;
+  if (entry.count > RATE_LIMIT_MAX) {
+    return res.status(429).json({ error: 'Too many requests. Please slow down.' });
+  }
+  return next();
+}
+
+app.use('/api/ai', rateLimit);
+
+function resolveApiKey(req: express.Request): string | undefined {
+  const customKey = req.headers['x-gemini-key'] as string | undefined;
+  if (customKey) return customKey;
+
+  const devToken = process.env.DEV_API_TOKEN;
+  if (devToken && req.headers['x-dev-token'] === devToken) {
+    return process.env.GEMINI_API_KEY;
+  }
+
+  if (isLocalhost(req)) {
+    return process.env.GEMINI_API_KEY;
+  }
+
+  return undefined;
+}
+
+function isMissingApiKey(apiKey?: string): boolean {
+  return !apiKey || apiKey === "your_gemini_api_key_here";
+}
+
+function getAI(apiKey: string): GoogleGenAI {
+  const key = apiKey.replace(/['"\s]+/g, '');
   return new GoogleGenAI({
     apiKey: key
   });
@@ -80,13 +125,13 @@ Dojo Master Tactical Cues for: **${exerciseName.toUpperCase()}** (${(category ||
 
 // API endpoint for tactical tips / search grounding
 app.post("/api/ai/tips", async (req, res: any) => {
-  const customKey = req.headers["x-gemini-key"] as string | undefined;
+  const apiKey = resolveApiKey(req);
   const { exerciseName, category } = req.body;
-  if (!exerciseName) {
+  if (typeof exerciseName !== 'string' || !exerciseName.trim()) {
     return res.status(400).json({ error: "Exercise name is required" });
   }
 
-  if (isMissingApiKey(customKey)) {
+  if (isMissingApiKey(apiKey)) {
     const fallbackTips = getFallbackDojoCues(exerciseName, category);
     return res.json({ tips: fallbackTips });
   }
@@ -95,10 +140,10 @@ app.post("/api/ai/tips", async (req, res: any) => {
 
   try {
     // Attempt 1: Search-grounded generation for up-to-date real-time tactical intel
-      const response = await getAI(customKey).models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: prompt,
-        config: {
+    const response = await getAI(apiKey).models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
         systemInstruction: "You are an elite combat conditioning Dojo Master. Your tone is disciplined, highly focused, tactical, and motivational.",
         tools: [{ googleSearch: {} }],
       }
@@ -110,7 +155,7 @@ app.post("/api/ai/tips", async (req, res: any) => {
     
     try {
       // Attempt 2: Standard Gemini model generation (no search tool, much lighter quota footprint)
-      const standardResponse = await getAI(customKey).models.generateContent({
+      const standardResponse = await getAI(apiKey).models.generateContent({
         model: "gemini-2.5-flash",
         contents: prompt,
         config: {
@@ -130,8 +175,8 @@ app.post("/api/ai/tips", async (req, res: any) => {
 
 // API endpoint for image generation / editing using gemini-2.5-flash-image
 app.post("/api/ai/avatar", async (req, res: any) => {
-  const customKey = req.headers["x-gemini-key"] as string | undefined;
-  if (!customKey && isMissingApiKey()) {
+  const apiKey = resolveApiKey(req);
+  if (isMissingApiKey(apiKey)) {
     return res.status(503).json({ 
       error: "Avatar forge is offline. Please configure your API key in the .env file.",
       code: "MISSING_API_KEY"
@@ -140,7 +185,7 @@ app.post("/api/ai/avatar", async (req, res: any) => {
 
   try {
     const { prompt, currentImage, isEdit } = req.body;
-    if (!prompt) {
+    if (typeof prompt !== 'string' || !prompt.trim()) {
       return res.status(400).json({ error: "Prompt is required" });
     }
 
@@ -176,7 +221,7 @@ app.post("/api/ai/avatar", async (req, res: any) => {
       };
     }
 
-    const response = await getAI(customKey).models.generateContent({
+    const response = await getAI(apiKey).models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: contents,
       config: {
@@ -221,8 +266,8 @@ app.post("/api/ai/avatar", async (req, res: any) => {
 
 // API endpoint for AI Athlete Coach
 app.post("/api/ai/coach", async (req, res: any) => {
-  const customKey = req.headers["x-gemini-key"] as string | undefined;
-  if (!customKey && isMissingApiKey()) {
+  const apiKey = resolveApiKey(req);
+  if (isMissingApiKey(apiKey)) {
     return res.status(503).json({ 
       error: "AI Coach is not configured yet. Please add your GEMINI_API_KEY to the .env file.",
       code: "MISSING_API_KEY"
@@ -230,7 +275,7 @@ app.post("/api/ai/coach", async (req, res: any) => {
   }
 
   const { message, history, athleteProfile } = req.body;
-  if (!message) {
+  if (typeof message !== 'string' || !message.trim()) {
     return res.status(400).json({ error: "Message is required" });
   }
 
@@ -259,7 +304,8 @@ ${profileContext}`;
   try {
     const contents: any[] = [];
     if (history && Array.isArray(history)) {
-      history.forEach((item: any) => {
+      const trimmedHistory = history.slice(-20);
+      trimmedHistory.forEach((item: any) => {
         contents.push({
           role: item.role === 'assistant' || item.role === 'model' ? 'model' : 'user',
           parts: [{ text: item.content || item.text || "" }]
@@ -271,7 +317,7 @@ ${profileContext}`;
       parts: [{ text: message }]
     });
 
-    const response = await getAI(customKey).models.generateContent({
+    const response = await getAI(apiKey).models.generateContent({
       model: "gemini-2.5-flash",
       contents: contents,
       config: {
