@@ -1,814 +1,153 @@
-/*
-Author: AI Coding Assistant
-OS support: Linux, macOS, Windows
-Description: Main application container coordinating profile selection, workouts, progression, and the custom synthetic breathing pacing HUD
-*/
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { 
-  Dumbbell, Flame, RotateCcw, Play, Pause, ChevronRight, TrendingUp, Award, ShieldAlert,
-  Zap, Trophy, Target, ChevronLeft, Activity, UserPlus, Users, Trash2, Edit3, Check, CheckSquare, Sparkles, MessageSquare, Volume2,
-  Droplets, Moon, Brain, Apple, BookOpen, Info, Search, Home, Calendar, Sliders, Send, User, Layout, Bot
-} from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
-import { AthleteProfile, Exercise, WorkoutDay } from './types';
-import { WORKOUTS, QUOTES, DEFAULT_AVATARS, WARM_UPS, WarmUpMove, WarmUpProtocol } from './data';
-import TacticalCuesModal from './components/TacticalCuesModal';
-import AvatarCreator from './components/AvatarCreator';
-import SettingsModal from './components/SettingsModal';
-
-// Modular screen subcomponents
-import HomeScreen from './components/HomeScreen';
-import WorkoutScreen from './components/WorkoutScreen';
-import ProgressScreen from './components/ProgressScreen';
-import CalendarScreen from './components/CalendarScreen';
-import ProfileScreen from './components/ProfileScreen';
+import React, { Suspense, lazy } from 'react';
+import { motion, AnimatePresence, MotionConfig } from 'motion/react';
+import { Play } from 'lucide-react';
+import { VaultProvider, useVault } from './contexts/VaultContext';
+import { UIProvider, useUI } from './contexts/UIContext';
+import { RestTimerProvider, useRestTimer } from './contexts/RestTimerContext';
 import OnboardingScreen from './components/OnboardingScreen';
-import AICoach from './components/AICoach';
+import AppHeader from './components/layout/AppHeader';
+import BottomNav from './components/layout/BottomNav';
+import RestTimerHUD from './components/layout/RestTimerHUD';
+import ProfileSwitcher from './components/layout/ProfileSwitcher';
+import OfflineBanner from './components/layout/OfflineBanner';
+import ErrorBoundary from './components/shared/ErrorBoundary';
+import Toast from './components/layout/Toast';
+import TacticalCuesModal from './components/TacticalCuesModal';
+import SettingsModal from './components/SettingsModal';
+import AvatarCreator from './components/AvatarCreator';
 import { setStorageItem } from './utils/storage';
-import { loadVaultFromStorage, saveVaultToStorage } from './utils/vaultStorage';
+import { useRestTimerPersistence } from './hooks/useRestTimerPersistence';
 
-const DEFAULT_RITUALS = [
-  {
-    name: "Hydration Recovery",
-    description: "Hydrate body with 3L+ of pure water",
-    icon: <Droplets size={14} />
-  },
-  {
-    name: "Sleep Protocol",
-    description: "7-9 hours of deep restful sleep",
-    icon: <Moon size={14} />
-  },
-  {
-    name: "Mind Stillness",
-    description: "10 min focused meditation/breathing",
-    icon: <Brain size={14} />
-  },
-  {
-    name: "Nutrition Intake",
-    description: "Consume clean high-protein meals",
-    icon: <Apple size={14} />
-  }
-];
+const HomeScreen = lazy(() => import('./features/home/HomeScreen'));
+const WorkoutScreen = lazy(() => import('./features/workout/WorkoutScreen'));
+const ProgressScreen = lazy(() => import('./features/progress/ProgressScreen'));
+const ProfileScreen = lazy(() => import('./features/profile/ProfileScreen'));
 
-function parseRepsFromSpec(spec: string): number {
-  try {
-    const cleanSpec = spec.toLowerCase().replace(/\s/g, '');
-    if (cleanSpec.includes('maxtime') || cleanSpec.includes('failure')) {
-      return 12; // default high index reps
-    }
-    const parts = cleanSpec.split(/[×*x]/);
-    if (parts.length >= 2) {
-      const repsPart = parts[1];
-      const numMatch = repsPart.match(/^(\d+)/);
-      if (numMatch) {
-        return parseInt(numMatch[1], 10);
-      }
-    }
-  } catch (e) {
-    console.error("Failed to parse spec reps, using default 10", e);
-  }
-  return 10; // default safe fallback reps
+function ScreenFallback() {
+  return (
+    <div className="flex items-center justify-center py-20">
+      <div className="h-8 w-8 border-2 border-volt-500 border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
 }
 
-function getBadgeIconComponent(iconName: string, size = 11) {
-  switch (iconName) {
-    case "Trophy": return <Trophy size={size} fill="currentColor" className="opacity-90 animate-pulse" />;
-    case "Flame": return <Flame size={size} fill="currentColor" className="opacity-90 animate-pulse" />;
-    case "Zap": return <Zap size={size} fill="currentColor" className="opacity-90" />;
-    case "Award": return <Award size={size} className="opacity-90 stroke-[2.5]" />;
-    case "Dumbbell": return <Dumbbell size={size} className="opacity-90 stroke-[2.5]" />;
-    case "Activity": return <Activity size={size} className="opacity-90 stroke-[2.5]" />;
-    case "Target": return <Target size={size} className="opacity-90 stroke-[2.5]" />;
-    default: return <Award size={size} className="opacity-90 animate-pulse" />;
-  }
-}
+function AppContent() {
+  const { activeProfile, storageSaveFailed, updateActiveProfile } = useVault();
+  const {
+    activeTab,
+    setActiveTab,
+    cuesModalState,
+    setCuesModalState,
+    avatarModalOpen,
+    setAvatarModalOpen,
+    settingsModalOpen,
+    setSettingsModalOpen,
+    triggerToast,
+  } = useUI();
+  const { timerActive } = useRestTimer();
 
-export default function App() {
-  // --- SAVED VAULT (Offline profiles engine) ---
-  const [vault, setVault] = useState<{
-    profiles: AthleteProfile[];
-    currentProfileId: string;
-  }>(() => {
-    const saved = typeof window !== 'undefined' ? loadVaultFromStorage() : null;
-    if (saved) return saved;
+  useRestTimerPersistence();
 
-    // Default Seed Profile
-    const seedId = "combatant-seed";
-    const defaultProfile: AthleteProfile = {
-      id: seedId,
-      name: "NEW ATHLETE",
-      completedSets: {},
-      savedWeights: {},
-      avatarUrl: DEFAULT_AVATARS[0],
-      streak: 0,
-      lastActiveDate: "",
-      personalBests: {},
-      age: 16,
-      height: "",
-      weight: 0,
-      sport: "Athlete",
-      goals: "",
-      equipment: "Full Gym",
-      bodyWeightLogs: [],
-      completedWorkouts: []
-    };
-
-    return {
-      profiles: [defaultProfile],
-      currentProfileId: seedId
-    };
-  });
-
-  const [storageSaveFailed, setStorageSaveFailed] = useState(false);
-
-  // Keep local storage in perfect synchronization
-  useEffect(() => {
-    const ok = saveVaultToStorage(vault);
-    if (!ok) {
-      setStorageSaveFailed(true);
-    }
-  }, [vault]);
-
-  // Migrate missing array fields; only seed profile gets demo biometrics
-  useEffect(() => {
-    const profile = vault.profiles.find(p => p.id === vault.currentProfileId) || vault.profiles[0];
-    if (!profile) return;
-
-    let mutated = false;
-    const nextProfile = { ...profile };
-    const isSeedProfile = nextProfile.id === 'combatant-seed';
-
-    if (!nextProfile.bodyWeightLogs) { nextProfile.bodyWeightLogs = []; mutated = true; }
-    if (!nextProfile.completedWorkouts) { nextProfile.completedWorkouts = []; mutated = true; }
-    if (!nextProfile.personalBests) {
-      nextProfile.personalBests = isSeedProfile
-        ? {
-            'Bench Press': 135,
-            Squat: 185,
-            Deadlift: 225,
-            'Overhead Press': 95,
-            'Pull-Ups': 0
-          }
-        : {};
-      mutated = true;
-    }
-
-    if (isSeedProfile) {
-      if (nextProfile.age === undefined) { nextProfile.age = 16; mutated = true; }
-      if (nextProfile.height === undefined) { nextProfile.height = '5ft 9in'; mutated = true; }
-      if (nextProfile.weight === undefined) { nextProfile.weight = 145; mutated = true; }
-      if (nextProfile.sport === undefined) { nextProfile.sport = 'Wrestling'; mutated = true; }
-      if (nextProfile.goals === undefined) { nextProfile.goals = 'Build explosive speed & defense.'; mutated = true; }
-    }
-
-    if (mutated) {
-      setVault(prev => ({
-        ...prev,
-        profiles: prev.profiles.map(p => p.id === nextProfile.id ? nextProfile : p)
-      }));
-    }
-  }, [vault.profiles, vault.currentProfileId]);
-
-  // Current active profile helper
-  const activeProfile = useMemo(() => {
-    return vault.profiles.find(p => p.id === vault.currentProfileId) || vault.profiles[0];
-  }, [vault]);
-
-  // --- STATE FOR CURRENT APP FLOW ---
-  const [currentDay, setCurrentDay] = useState<string>("Sunday");
-  const dList = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  
-  useEffect(() => {
-    setCurrentDay(dList[new Date().getDay()]);
-  }, []);
-
-  const activeWorkout = useMemo(() => {
-    return WORKOUTS[currentDay] || WORKOUTS.Sunday;
-  }, [currentDay]);
-
-  // Toast alert system
-  const [toast, setToast] = useState<{ visible: boolean; message: string }>({ visible: false, message: "" });
-  const triggerToast = (msg: string) => {
-    setToast({ visible: true, message: msg });
-    setTimeout(() => setToast({ visible: false, message: "" }), 3000);
-  };
-
-  // Profilechanger views
-  const [showManageProfiles, setShowManageProfiles] = useState(false);
-  const [newProfileName, setNewProfileName] = useState("");
-  const [avatarModalOpen, setAvatarModalOpen] = useState(false);
-  const [settingsModalOpen, setSettingsModalOpen] = useState(false);
-
-  // Bottom Navigation tab routing state
-  const [activeTab, setActiveTab] = useState<'home' | 'workout' | 'progress' | 'calendar' | 'profile' | 'coach'>('home');
-
-  // Bodyweight indicator state
-  const [newBodyWeight, setNewBodyWeight] = useState("");
-
-  // Modals state
-  const [cuesModalState, setCuesModalState] = useState<{ isOpen: boolean; exerciseName: string; category: string }>({
-    isOpen: false,
-    exerciseName: "",
-    category: ""
-  });
-
-  // Motivational quote index
-  const [quoteIdx, setQuoteIdx] = useState(0);
-
-  // Rest Timer countdown mechanics
-  const [timerMax, setTimerMax] = useState(90); // default rest 90s
-  const [timerRemaining, setTimerRemaining] = useState(90);
-  const [timerRunning, setTimerRunning] = useState(false);
-  const timerMaxRef = useRef(timerMax);
-  timerMaxRef.current = timerMax;
-
-  // Warmup protocol checkboxes
-  const [checkedWarmups, setCheckedWarmups] = useState<Record<string, boolean>>({});
-  const [isWarmupOpen, setIsWarmupOpen] = useState(true);
-  const [warmupTimerActive, setWarmupTimerActive] = useState(false);
-  const [warmupTimeRemaining, setWarmupTimeRemaining] = useState(300);
-
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const gainNodeRef = useRef<GainNode | null>(null);
-  const synthIntervalRef = useRef<any>(null);
-
-  const playRestAlertAudio = () => {
-    try {
-      if (!audioCtxRef.current) {
-        const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext;
-        if (!AudioCtxClass) return;
-        audioCtxRef.current = new AudioCtxClass();
-      }
-      const ctx = audioCtxRef.current;
-      if (ctx.state === 'suspended') {
-        ctx.resume();
-      }
-      
-      // Beep tone 1
-      const osc1 = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-      osc1.frequency.setValueAtTime(660, ctx.currentTime); // High pitch ring
-      osc1.type = "sine";
-      
-      gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.8);
-      
-      osc1.connect(gainNode);
-      gainNode.connect(ctx.destination);
-      osc1.start();
-      osc1.stop(ctx.currentTime + 0.8);
-      
-      triggerToast("🔔 REST PERIOD COMPLETE! Back to the grind, athlete!");
-    } catch (e) {
-      console.warn("Audio Context alert blocked by browser guidelines", e);
-    }
-  };
-
-  // Rest timer ticker decrementation effect
-  useEffect(() => {
-    if (!timerRunning) return;
-
-    const ticker = setInterval(() => {
-      setTimerRemaining(prev => {
-        if (prev <= 1) {
-          setTimerRunning(false);
-          playRestAlertAudio();
-          return timerMaxRef.current;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(ticker);
-  }, [timerRunning]);
-
-  // Combat Rhythm Synth state & refs (Browser-synthesized sub-beats)
-  const [isSynthRunning, setIsSynthRunning] = useState<boolean>(false);
-  const [synthTrack, setSynthTrack] = useState<string>("focus");
-  const [synthVolume, setSynthVolume] = useState<number>(0.2);
-
-  const startCombatSynth = (track: string, vol: number) => {
-    try {
-      if (!audioCtxRef.current) {
-        const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext;
-        audioCtxRef.current = new AudioCtxClass();
-      }
-      
-      const ctx = audioCtxRef.current;
-      if (ctx.state === 'suspended') {
-        ctx.resume();
-      }
-
-      // Clear existing nodes if running
-      if (synthIntervalRef.current) {
-        clearInterval(synthIntervalRef.current);
-      }
-
-      // Initialize gain
-      gainNodeRef.current = ctx.createGain();
-      gainNodeRef.current.gain.value = vol;
-      gainNodeRef.current.connect(ctx.destination);
-
-      // Create a beat generator
-      let stepIdx = 0;
-      const beatIntervals: Record<string, number> = {
-        combat: 250,
-        intense: 250,
-        focus: 500,
-        chill: 800,
-      };
-      const beatInterval = beatIntervals[track] ?? 500;
-
-      synthIntervalRef.current = setInterval(() => {
-        if (!audioCtxRef.current || audioCtxRef.current.state === 'suspended') return;
-        
-        // Synthesize kick/sub elements
-        const osc = ctx.createOscillator();
-        const nodeGain = ctx.createGain();
-        
-        osc.connect(nodeGain);
-        if (gainNodeRef.current) {
-          nodeGain.connect(gainNodeRef.current);
-        }
-
-        // Deep drop rhythm
-        osc.type = "sine";
-        if (stepIdx % 4 === 0) {
-          osc.frequency.setValueAtTime(60, ctx.currentTime); // Heavy thump
-          osc.frequency.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-          nodeGain.gain.setValueAtTime(0.8, ctx.currentTime);
-          nodeGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-          osc.start();
-          osc.stop(ctx.currentTime + 0.32);
-        } else if (stepIdx % 2 === 0) {
-          osc.frequency.setValueAtTime(90, ctx.currentTime); // Mid double leg click
-          osc.frequency.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
-          nodeGain.gain.setValueAtTime(0.4, ctx.currentTime);
-          nodeGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
-          osc.start();
-          osc.stop(ctx.currentTime + 0.16);
-        } else {
-          // Snare-like high frequency brush
-          osc.type = "triangle";
-          osc.frequency.setValueAtTime(150, ctx.currentTime);
-          nodeGain.gain.setValueAtTime(0.15, ctx.currentTime);
-          nodeGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
-          osc.start();
-          osc.stop(ctx.currentTime + 0.09);
-        }
-
-        stepIdx++;
-      }, beatInterval);
-
-      setIsSynthRunning(true);
-      triggerToast(`Pacemaker engaged: [${track.toUpperCase()} BEATS]`);
-    } catch (err) {
-      console.warn("Pacemaker failed to start", err);
-    }
-  };
-
-  const stopCombatSynthNodes = () => {
-    if (synthIntervalRef.current) {
-      clearInterval(synthIntervalRef.current);
-      synthIntervalRef.current = null;
-    }
-    setIsSynthRunning(false);
-  };
-
-  // Safely mutate profile data
-  const updateActiveProfile = (updater: (prev: AthleteProfile) => AthleteProfile) => {
-    setVault(prev => {
-      const profilesCopy = prev.profiles.map(p => {
-        if (p.id === prev.currentProfileId) {
-          const nextProfile = updater(p);
-          return nextProfile;
-        }
-        return p;
-      });
-
-      return {
-        ...prev,
-        profiles: profilesCopy
-      };
-    });
-  };
-
-  const handleCreateProfile = (nameArg: string) => {
-    const freshId = `athlete-${Date.now()}`;
-    const freshProfile: AthleteProfile = {
-      id: freshId,
-      name: nameArg.trim().toUpperCase() || "NEW ATHLETE",
-      completedSets: {},
-      savedWeights: {},
-      avatarUrl: DEFAULT_AVATARS[Math.floor(Math.random() * DEFAULT_AVATARS.length)],
-      streak: 0,
-      lastActiveDate: "",
-      personalBests: {},
-      age: undefined,
-      height: "",
-      weight: undefined,
-      sport: "",
-      goals: "",
-      equipment: "Full Gym",
-      bodyWeightLogs: [],
-      completedWorkouts: []
-    };
-
-    setVault(prev => ({
-      profiles: [...prev.profiles, freshProfile],
-      currentProfileId: freshId
-    }));
-
-    triggerToast(`Athlete ${freshProfile.name} registered on roster.`);
-  };
-
-  const handleDeleteProfile = (id: string) => {
-    if (vault.profiles.length <= 1) return;
-    setVault(prev => {
-      const filtered = prev.profiles.filter(p => p.id !== id);
-      const nextActiveId = prev.currentProfileId === id ? filtered[0].id : prev.currentProfileId;
-      return {
-        profiles: filtered,
-        currentProfileId: nextActiveId
-      };
-    });
-    triggerToast("Athlete cleared from active roster.");
-  };
-
-  const handleAddBodyWeight = () => {
-    const wt = parseFloat(newBodyWeight);
-    if (isNaN(wt) || wt <= 0) {
-      triggerToast("Input a valid positive body weight.");
-      return;
-    }
-    const todayStr = new Date().toISOString().split('T')[0];
-    updateActiveProfile(prev => {
-      const currentLogs = prev.bodyWeightLogs || [];
-      const updatedLogs = [...currentLogs, { date: todayStr, weight: wt }];
-      return {
-        ...prev,
-        weight: wt,
-        bodyWeightLogs: updatedLogs
-      };
-    });
-    setNewBodyWeight("");
-    triggerToast(`Biometric log written: ${wt} lbs.`);
-  };
+  const isOnboarding = activeProfile.name === 'NEW ATHLETE';
 
   return (
     <div className="min-h-dvh bg-ntc text-zinc-100 font-sans tracking-tight pb-28 relative overflow-x-hidden selection:bg-volt-500 selection:text-black">
+      <OfflineBanner />
       {storageSaveFailed && (
         <div className="fixed top-0 left-0 right-0 z-[60] bg-rose-600 text-white text-xs font-semibold text-center px-4 py-2">
           Progress couldn&apos;t be saved — storage full or private browsing.
         </div>
       )}
 
-      {activeProfile.name === "NEW ATHLETE" && (
+      {isOnboarding ? (
         <OnboardingScreen updateActiveProfile={updateActiveProfile} />
-      )}
-
-      {/* TOP HEADER */}
-      <div className="bg-ntc border-b border-ntc-border sticky top-0 z-40">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div>
-              <span className="text-lg font-black tracking-tight text-white block leading-none">IronPath</span>
-              <span className="text-[11px] font-medium text-zinc-500">Training</span>
-            </div>
-          </div>
-          
-          {/* Active Ledger / Switcher */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setSettingsModalOpen(true)}
-              className="p-2 rounded-full hover:bg-zinc-900 transition-colors text-zinc-400 hover:text-white select-none cursor-pointer"
-              title="Settings"
-            >
-              <Sliders size={18} />
-            </button>
-            <button
-              onClick={() => setShowManageProfiles(!showManageProfiles)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-ntc-elevated border border-ntc-border hover:border-zinc-700 transition-all text-xs font-semibold text-zinc-300 select-none cursor-pointer"
-            >
-              <Users size={14} className="text-zinc-400" />
-              <span className="max-w-[110px] truncate">{activeProfile.name}</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-4xl mx-auto px-4 pt-6">
-        
-        {/* PROFILE CHANGER PANEL */}
-        <AnimatePresence>
-          {showManageProfiles && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="mb-6 bg-ntc-elevated border border-ntc-border rounded-2xl overflow-hidden p-5"
-            >
-              <div className="flex justify-between items-center mb-4 pb-2 border-b border-ntc-border">
-                <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
-                  <ShieldAlert size={14} className="text-zinc-400" /> Profiles
-                </h4>
-                <button
-                  onClick={() => setShowManageProfiles(false)}
-                  className="text-xs text-zinc-500 hover:text-white font-bold"
-                >
-                  Close Ledger
-                </button>
-              </div>
-
-              {/* Profiles list */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                {vault.profiles.map(p => (
-                  <div 
-                    key={p.id}
-                    className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
-                      p.id === activeProfile.id 
-                        ? 'bg-zinc-900 border-volt-500/40' 
-                        : 'bg-ntc border-ntc-border hover:border-zinc-700'
-                    }`}
-                  >
-                    <div 
-                      className="flex items-center gap-3 cursor-pointer flex-1"
-                      onClick={() => {
-                        setVault(prev => ({ ...prev, currentProfileId: p.id }));
-                        triggerToast(`Switched profile to: ${p.name}`);
-                      }}
-                    >
-                      <img 
-                        src={p.avatarUrl} 
-                        alt={p.name} 
-                        className="h-8 w-8 rounded-full border border-zinc-800 object-cover"
-                        referrerPolicy="no-referrer"
-                      />
-                      <div>
-                        <p className="text-sm font-bold text-white">{p.name}</p>
-                        <p className="text-[10px] text-zinc-500 font-medium">Streak {p.streak} • {p.sport || "Wrestling"}</p>
-                      </div>
-                    </div>
-                    {vault.profiles.length > 1 && (
-                      <button 
-                        onClick={() => handleDeleteProfile(p.id)}
-                        className="p-1.5 text-zinc-650 hover:text-rose-500 transition-colors"
-                        title="Delete athlete profile"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {/* Create new profile form */}
-              <div className="border-t border-zinc-900 pt-4">
-                <span className="text-xs font-medium text-zinc-500 block mb-2">Add profile</span>
-                <form 
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    if (!newProfileName.trim()) return;
-                    handleCreateProfile(newProfileName.trim());
-                    setNewProfileName("");
-                  }}
-                  className="flex gap-2"
-                >
-                  <input
-                    type="text"
-                    value={newProfileName}
-                    onChange={(e) => setNewProfileName(e.target.value)}
-                    placeholder="E.G. CHAMPION-ATHLETE"
-                    className="flex-1 bg-ntc border border-ntc-border rounded-xl px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-volt-500/50"
-                  />
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-white text-black text-sm font-bold rounded-xl hover:bg-zinc-100"
-                  >
-                    Add
-                  </button>
-                </form>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.2 }}
-            className="transition-all duration-300 pb-20"
-          >
-            {activeTab === 'home' && (
-              <HomeScreen
-                currentDay={currentDay}
-                todayWorkout={activeWorkout}
-                setActiveTab={setActiveTab}
-                activeProfile={activeProfile}
-                triggerToast={triggerToast}
-                updateActiveProfile={updateActiveProfile}
-              />
-            )}
-
-            {activeTab === 'workout' && (
-              <WorkoutScreen
-                activeProfile={activeProfile}
-                currentDay={currentDay}
-                setCurrentDay={setCurrentDay}
-                activeWorkout={activeWorkout}
-                updateActiveProfile={updateActiveProfile}
-                triggerToast={triggerToast}
-                checkedWarmups={checkedWarmups}
-                setCheckedWarmups={setCheckedWarmups}
-                isWarmupOpen={isWarmupOpen}
-                setIsWarmupOpen={setIsWarmupOpen}
-                warmupTimerActive={warmupTimerActive}
-                setWarmupTimerActive={setWarmupTimerActive}
-                warmupTimeRemaining={warmupTimeRemaining}
-                setWarmupTimeRemaining={setWarmupTimeRemaining}
-                setTimerRemaining={setTimerRemaining}
-                setTimerMax={setTimerMax}
-                setTimerRunning={setTimerRunning}
-                isSynthRunning={isSynthRunning}
-                setIsSynthRunning={setIsSynthRunning}
-                synthTrack={synthTrack}
-                setSynthTrack={setSynthTrack}
-                synthVolume={synthVolume}
-                setSynthVolume={setSynthVolume}
-                handleInitSynthAudio={() => startCombatSynth(synthTrack, synthVolume)}
-                handleStopSynthAudio={stopCombatSynthNodes}
-                setCuesModalState={setCuesModalState}
-                getBadgeIconComponent={getBadgeIconComponent}
-              />
-            )}
-
-            {activeTab === 'progress' && (
-              <ProgressScreen
-                activeProfile={activeProfile}
-                updateActiveProfile={updateActiveProfile}
-                triggerToast={triggerToast}
-                newBodyWeight={newBodyWeight}
-                setNewBodyWeight={setNewBodyWeight}
-                handleAddBodyWeight={handleAddBodyWeight}
-              />
-            )}
-
-            {activeTab === 'calendar' && (
-              <CalendarScreen
-                activeProfile={activeProfile}
-                updateActiveProfile={updateActiveProfile}
-                triggerToast={triggerToast}
-              />
-            )}
-
-            {activeTab === 'profile' && (
-              <ProfileScreen
-                activeProfile={activeProfile}
-                updateActiveProfile={updateActiveProfile}
-                triggerToast={triggerToast}
-                setAvatarModalOpen={setAvatarModalOpen}
-              />
-            )}
-
-            {activeTab === 'coach' && (
-              <AICoach activeProfile={activeProfile} />
-            )}
-          </motion.div>
-        </AnimatePresence>
-      </div>
-
-      {/* FLOATING REST TIMER OVERLAY / METRICS MINI HUD */}
-      {timerRunning && (
-        <div className="fixed bottom-24 right-4 z-50 bg-ntc-elevated border border-ntc-border rounded-full px-4 py-2.5 flex items-center gap-3 shadow-lg">
-          <div className="relative h-9 w-9 flex items-center justify-center">
-            {/* SVG Progress Circle behind */}
-            <svg className="absolute inset-0 transform -rotate-90" viewBox="0 0 36 36">
-              <path
-                className="text-zinc-800"
-                strokeWidth="2.5"
-                stroke="currentColor"
-                fill="none"
-                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-              />
-              <path
-                className="text-volt-500 transition-all duration-300"
-                strokeWidth="2.5"
-                strokeDasharray={`${(timerRemaining / timerMax) * 100}, 100`}
-                strokeLinecap="round"
-                stroke="currentColor"
-                fill="none"
-                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-              />
-            </svg>
-            <span className="text-[10px] font-bold text-volt-500 z-10">{timerRemaining}s</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setTimerRunning(!timerRunning)}
-              className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
-            >
-              {timerRunning ? <Pause size={12} /> : <Play size={12} />}
-            </button>
-            <button
-              onClick={() => {
-                setTimerRemaining(timerMax);
-                setTimerRunning(false);
-                triggerToast("Rest timer reset");
-              }}
-              className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
-            >
-              <RotateCcw size={12} />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {activeTab !== 'workout' && !timerRunning && (
-        <button
-          onClick={() => setActiveTab('workout')}
-          className="fixed bottom-24 right-5 z-40 bg-white hover:bg-zinc-100 text-black font-bold text-sm rounded-full px-6 py-3.5 flex items-center gap-2 transition-transform shadow-lg hover:scale-105 cursor-pointer"
-        >
-          <Play size={16} className="fill-current" /> Start
-        </button>
-      )}
-
-      {/* BOTTOM FLOATING NAV BAR TO PREVENT OVERSHOOT (LARGE TARGETS >= 44x44) */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-ntc border-t border-ntc-border pb-safe">
-        <div className="max-w-md mx-auto h-[68px] px-2 flex justify-between items-center">
-          {[
-            { id: 'home', label: 'Home', icon: Layout },
-            { id: 'workout', label: 'Train', icon: Dumbbell },
-            { id: 'progress', label: 'Progress', icon: TrendingUp },
-            { id: 'coach', label: 'Coach', icon: Bot },
-            { id: 'calendar', label: 'Calendar', icon: Calendar },
-            { id: 'profile', label: 'Profile', icon: User }
-          ].map(tab => {
-            const Icon = tab.icon;
-            const isSel = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`flex flex-col items-center justify-center gap-1 flex-1 h-full min-h-[44px] min-w-[44px] text-center select-none cursor-pointer transition-colors ${
-                  isSel ? 'text-volt-500' : 'text-zinc-500 hover:text-zinc-300'
-                }`}
+      ) : (
+        <>
+          <AppHeader />
+          <div className="max-w-4xl mx-auto px-4 pt-5">
+            <ProfileSwitcher />
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, x: 16 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -16 }}
+                transition={{ duration: 0.18 }}
+                className="pb-20"
               >
-                <Icon size={20} strokeWidth={isSel ? 2.5 : 2} />
-                <span className="text-[10px] font-medium leading-none">{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+                <Suspense fallback={<ScreenFallback />}>
+                  <ErrorBoundary screenName="Home">
+                    {activeTab === 'home' && <HomeScreen />}
+                  </ErrorBoundary>
+                  <ErrorBoundary screenName="Workout">
+                    {activeTab === 'workout' && <WorkoutScreen />}
+                  </ErrorBoundary>
+                  <ErrorBoundary screenName="Progress">
+                    {activeTab === 'progress' && <ProgressScreen />}
+                  </ErrorBoundary>
+                  <ErrorBoundary screenName="Profile">
+                    {activeTab === 'profile' && <ProfileScreen />}
+                  </ErrorBoundary>
+                </Suspense>
+              </motion.div>
+            </AnimatePresence>
+          </div>
 
-      {/* MODAL SYSTEM */}
+          <RestTimerHUD />
+
+          {activeTab !== 'workout' && !timerActive && (
+            <button
+              onClick={() => setActiveTab('workout')}
+              className="fixed bottom-24 right-5 z-40 bg-white hover:bg-zinc-100 text-black font-bold text-sm rounded-full px-6 py-3.5 flex items-center gap-2 shadow-lg min-h-[44px]"
+            >
+              <Play size={16} className="fill-current" /> Start
+            </button>
+          )}
+
+          <BottomNav />
+        </>
+      )}
+
       <TacticalCuesModal
         isOpen={cuesModalState.isOpen}
         exerciseName={cuesModalState.exerciseName}
         category={cuesModalState.category}
-        onClose={() => setCuesModalState(prev => ({ ...prev, isOpen: false }))}
+        onClose={() => setCuesModalState({ ...cuesModalState, isOpen: false })}
       />
 
-      <SettingsModal
-        isOpen={settingsModalOpen}
-        onClose={() => setSettingsModalOpen(false)}
-      />
+      <SettingsModal isOpen={settingsModalOpen} onClose={() => setSettingsModalOpen(false)} />
 
       <AvatarCreator
         currentAvatarUrl={activeProfile.avatarUrl}
         onAvatarGenerated={(newUrl) => {
-          updateActiveProfile(prev => {
+          updateActiveProfile((prev) => {
             if (newUrl.startsWith('data:') && newUrl.length > 200_000) {
               setStorageItem(`iron_mat_avatar_${prev.id}`, newUrl);
               return { ...prev, avatarUrl: `__avatar__:${prev.id}` };
             }
             return { ...prev, avatarUrl: newUrl };
           });
-          triggerToast("Combatant visual profile successfully forged!");
+          triggerToast('Avatar updated.');
         }}
         isOpen={avatarModalOpen}
         onClose={() => setAvatarModalOpen(false)}
       />
 
-      {/* ENCAPSULATED TOAST ALERTS */}
-      <AnimatePresence>
-        {toast.visible && (
-          <motion.div
-            initial={{ opacity: 0, y: -40, x: "-50%" }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -40 }}
-            className="fixed top-11 left-1/2 -translate-x-1/2 bg-ntc-elevated text-white px-6 py-2.5 rounded-full font-medium text-sm shadow-lg border border-ntc-border z-50 flex items-center gap-2"
-          >
-            <Zap size={14} className="text-volt-500 fill-volt-500" />
-            <span>{toast.message}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
+      <Toast />
     </div>
   );
 }
-/* --- End of App.tsx --- */
+
+export default function App() {
+  return (
+    <MotionConfig reducedMotion="user">
+      <VaultProvider>
+        <UIProvider>
+          <RestTimerProvider>
+            <AppContent />
+          </RestTimerProvider>
+        </UIProvider>
+      </VaultProvider>
+    </MotionConfig>
+  );
+}
